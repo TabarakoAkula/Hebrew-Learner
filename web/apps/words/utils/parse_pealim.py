@@ -1,7 +1,8 @@
-import requests
-from bs4 import BeautifulSoup
-import pprint
 import re
+
+from bs4 import BeautifulSoup
+import requests
+
 
 SEARCH_LINK = "https://www.pealim.com/ru/search/?q="
 BASE_LINK = "https://www.pealim.com"
@@ -10,8 +11,8 @@ VERB_SETTINGS = {
     "present": [
         ("ז.", "AP-ms"),
         ("נ.", "AP-fs"),
-        ("ז\"ר", "AP-mp"),
-        ("נ\"ר", "AP-fp"),
+        ('ז"ר', "AP-mp"),
+        ('נ"ר', "AP-fp"),
     ],
     "past": [
         ("אני", "PERF-1s"),
@@ -47,7 +48,6 @@ def get_word_page(search_word: str) -> list:
     soup = BeautifulSoup(response.text, "html.parser")
     results = soup.findAll("div", "verb-search-result")
     if not results:
-        print("No results")
         return ""
     output = []
     for result in results:
@@ -56,7 +56,10 @@ def get_word_page(search_word: str) -> list:
             "label": word.text,
             "word": get_clear_text(word.text),
             "translation": result.find("div", "verb-search-meaning").text,
-            "type": result.find("div", "verb-search-binyan").contents[1].replace("–", "").strip(),
+            "type": result.find("div", "verb-search-binyan")
+            .contents[1]
+            .replace("–", "")
+            .strip(),
             "link": word.find("a")["href"],
         }
         if get_clear_text(word.text) == search_word:
@@ -96,19 +99,25 @@ def get_noun_text(soup: str) -> dict:
 
         for i, cell in enumerate(cells):
             word = cell.find("span", class_="menukad").text.strip().replace("־", "")
-            transcription = cell.find("div", class_="transcription").get_text(strip=True).replace("-", "")
+            transcription = (
+                cell.find("div", class_="transcription")
+                .get_text(strip=True)
+                .replace("-", "")
+            )
             result.append(f"{labels[i].ljust(9)} {word} {{{transcription}}}")
     return result
 
 
 def get_adj_text(soup: str) -> list:
-    labels = [".ז", ".נ", "ז\"ר", "נ\"ר"]
+    labels = [".ז", ".נ", 'ז"ר', 'נ"ר']
     cells = soup.select("td.conj-td")
     results = []
 
     for label, cell in zip(labels, cells):
         word = cell.find("span", class_="menukad").text.strip()
-        transcription = cell.find("div", class_="transcription").get_text(strip=True)
+        transcription = cell.find("div", class_="transcription").get_text(
+            strip=True,
+        )
         results.append(f"{label.ljust(9)} {word} {{{transcription}}}")
     return results
 
@@ -131,7 +140,9 @@ def get_pretext_text(soup: str) -> list:
             forms = cell.find_all("div", recursive=False)
             for form in forms:
                 menukad = form.find("span", class_="menukad").text.strip()
-                transcription = form.find("div", class_="transcription").get_text(strip=True)
+                transcription = form.find("div", class_="transcription").get_text(
+                    strip=True
+                )
                 result.append(f"{label.ljust(9)} {menukad} {{{transcription}}}")
     return result
 
@@ -151,13 +162,17 @@ def get_word(link: str) -> dict:
         if len(tables) == 1:
             output["forms"]["active"] = get_verb_text(tables[0])
         else:
-            headers = soup.find("div", class_="horiz-scroll-wrapper").findAll("h3", class_="page-header")
+            headers = soup.find("div", class_="horiz-scroll-wrapper").findAll(
+                "h3", class_="page-header"
+            )
             if len(tables) != len(headers):
                 return "ERROR"
             for index in range(len(headers)):
                 heading = headers[index].contents[0].strip()
                 output["forms"][heading] = get_verb_text(tables[index])
-                output["forms"][heading]["benian"] = headers[index].contents[1].text.strip()
+                output["forms"][heading]["benian"] = (
+                    headers[index].contents[1].text.strip()
+                )
 
     elif page_type.lower().count("существительное"):
         output["type"] = "noun"

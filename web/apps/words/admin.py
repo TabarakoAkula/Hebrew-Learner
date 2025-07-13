@@ -1,4 +1,4 @@
-from apps.words.models import Word, Category
+from apps.words.models import Category, Word
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 

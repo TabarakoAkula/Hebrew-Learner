@@ -1,13 +1,13 @@
-import asyncio
-
-from apps.questions.constants import TR_TG_BUTTONS
-from apps.questions.models import Question
-from apps.questions.notifier import edit_message, logs_snitch, send_message
-from apps.questions.utils import ask_question
-from celery import shared_task
-from django.conf import settings
-
-USE_CELERY = settings.USE_CELERY
+# import asyncio
+#
+# from apps.questions.constants import TR_TG_BUTTONS
+# from apps.questions.models import Question
+# from apps.questions.notifier import edit_message, logs_snitch, send_message
+# from apps.questions.utils import ask_question
+# from celery import shared_task
+# from django.conf import settings
+#
+# USE_CELERY = settings.USE_CELERY
 
 
 # def manager_ask_question(data: dict) -> None:

@@ -10,6 +10,7 @@ from django.conf import settings
 
 
 BOT_TOKEN = settings.BOT_TOKEN
+LOGS_GROUP_ID = settings.LOGS_GROUP_ID
 
 
 def build_inline_keyboard(data: list) -> InlineKeyboardMarkup:
@@ -75,3 +76,16 @@ async def edit_message(telegram_id: int, data: dict) -> str:
         except Exception as error:
             return await logs_snitch(f"Error edit_message for {telegram_id}: {error}")
     return f"Edit message for {telegram_id}"
+
+
+async def logs_snitch(message: str) -> str:
+    async with AiohttpSession() as async_session:
+        notify_bot = Bot(token=BOT_TOKEN, session=async_session)
+        try:
+            await notify_bot.send_message(
+                chat_id=LOGS_GROUP_ID,
+                text=message,
+            )
+        except Exception as error:
+            return f"Snitch error: {error}"
+    return "Successfully snitched 🫡"
