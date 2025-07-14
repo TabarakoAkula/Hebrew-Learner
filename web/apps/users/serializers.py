@@ -21,6 +21,8 @@ class UserSerializer(serializers.Serializer):
         return user
 
     def update(self, instance, validated_data):
-        instance.telegram_username = validated_data.get("telegram_username", instance.telegram_username)
+        instance.telegram_username = validated_data.get(
+            "telegram_username", instance.telegram_username
+        )
         instance.save()
         return instance

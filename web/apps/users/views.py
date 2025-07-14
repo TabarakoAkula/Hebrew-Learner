@@ -1,6 +1,5 @@
 from apps.users.models import User
 from apps.users.serializers import UserSerializer
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView, Response
 
 
