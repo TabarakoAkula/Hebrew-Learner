@@ -9,10 +9,7 @@ class ApiKeyMiddleware:
 
     def __call__(self, request):
         if request.path.startswith("/api"):
-            if request.method == "POST":
-                token = request.headers.get("X-Api-Key")
-            else:
-                token = request.GET.get("api_key")
+            token = request.headers.get("X-Api-Key")
             if token != self.API_KEY:
                 return JsonResponse({"success": False, "message": "Invalid API key"})
         return self.get_response(request)
