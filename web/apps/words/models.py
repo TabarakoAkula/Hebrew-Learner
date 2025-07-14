@@ -7,6 +7,7 @@ class Category(models.Model):
         blank=False,
         max_length=120,
         verbose_name="название на иврите",
+        unique=True,
     )
     russian_name = models.CharField(
         null=False,
@@ -29,6 +30,7 @@ class Word(models.Model):
         blank=False,
         max_length=120,
         verbose_name="слово на иврите",
+        unique=True,
     )
     data = models.JSONField(
         default=dict,
@@ -51,6 +53,7 @@ class Word(models.Model):
         on_delete=models.CASCADE,
         verbose_name="категория",
     )
+    analyzed = models.BooleanField(default=False, verbose_name="анализирован")
 
     def __str__(self):
         return self.hebrew_word

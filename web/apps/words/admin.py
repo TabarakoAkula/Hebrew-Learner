@@ -10,6 +10,7 @@ class WordsAdmin(ModelAdmin):
         "category",
         "pealim_link",
         "data",
+        "analyzed",
         "created_at",
         "updated_at",
     )
