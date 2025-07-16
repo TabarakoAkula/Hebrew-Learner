@@ -7,15 +7,20 @@ from unfold.admin import ModelAdmin
 class WordsAdmin(ModelAdmin):
     list_display = (
         "hebrew_word",
-        "category",
         "pealim_link",
+        "get_categories",
         "data",
         "analyzed",
         "created_at",
         "updated_at",
     )
     search_fields = ("hebrew_word", "category")
-    list_filter = ("hebrew_word", "category", "created_at", "updated_at")
+    list_filter = ("hebrew_word", "created_at", "updated_at")
+
+    def get_categories(self, obj):
+        return " | ".join([category.russian_name for category in obj.categories.all()])
+
+    get_categories.short_description = "категории"
 
 
 @admin.register(Category)

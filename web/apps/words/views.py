@@ -1,19 +1,22 @@
 from apps.words.models import Category, Word
 from apps.words.serializers import CategorySerializer, WordSerializer
+from apps.words.tasks import manager_analyze_word
 from rest_framework.views import APIView, Response
 from rest_framework.viewsets import ModelViewSet
 
 
 class GetWordView(APIView):
     @staticmethod
-    def get(request, word):
+    def get(request):
         try:
+            word = request.GET["word"]
             message_id = request.GET["message_id"]
+            telegram_id = request.GET["telegram_id"]
         except KeyError:
             return Response(
                 {
                     "success": False,
-                    "message": "Bad request: message_id was not provided",
+                    "message": "Bad request: not all parameters were provided",
                 }
             )
         word_obj, new = Word.objects.get_or_create(hebrew_word=word)
@@ -21,9 +24,13 @@ class GetWordView(APIView):
         data = serializer.data
         data["new"] = new
         if new or not word_obj.analyzed:
-            pass
-            message_id += "use id for changing messages"
-            # TODO Send CELERY task for analysis
+            manager_analyze_word(
+                {
+                    "word": word,
+                    "telegram_id": telegram_id,
+                    "message_id": message_id,
+                }
+            )
         return Response({"success": True, "data": data})
 
 

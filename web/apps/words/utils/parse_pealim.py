@@ -43,12 +43,12 @@ def get_clear_text(text: str) -> str:
     return re.sub(r"[\u0591-\u05C7]", "", text).strip()
 
 
-def get_word_page(search_word: str) -> list:
+def get_word_page(search_word: str) -> list | dict | None:
     response = requests.get(SEARCH_LINK + search_word)
     soup = BeautifulSoup(response.text, "html.parser")
     results = soup.findAll("div", "verb-search-result")
     if not results:
-        return ""
+        return None
     output = []
     for result in results:
         word = result.find("div", "verb-search-lemma")
@@ -63,7 +63,7 @@ def get_word_page(search_word: str) -> list:
             "link": word.find("a")["href"],
         }
         if get_clear_text(word.text) == search_word:
-            return [word_data]
+            return word_data
         output.append(word_data)
     return output
 
@@ -83,7 +83,7 @@ def get_verb_text(soup: str) -> dict:
                 continue
             word = el.find("span", class_="menukad").text.strip()
             transcription = el.find("div", class_="transcription").text.strip()
-            output[time].append(f"{label.ljust(9)}{word} {{{transcription}}}")
+            output[time].append(f"{label.ljust(9)}*{word}* {{{transcription}}}")
     return output
 
 
@@ -152,15 +152,21 @@ def get_word(link: str) -> dict:
         "forms": {},
         "sqrt": "",
     }
-    response = requests.get(link)
+    response = requests.get(BASE_LINK + link)
     soup = BeautifulSoup(response.text, "html.parser")
     page_type = soup.findAll("div", class_="container")[1].find("p").text
     tables = soup.findAll("table", "table table-condensed conjugation-table")
 
     if page_type.lower().count("глагол"):
+        infinitive = soup.find("div", id="INF-L")
+        output["infinitive"] = {
+            "menukad": infinitive.find("span", class_="menukad").text.strip(),
+            "transcription": infinitive.find("div", class_="transcription").text.strip(),
+        }
         output["type"] = "verb"
         if len(tables) == 1:
             output["forms"]["active"] = get_verb_text(tables[0])
+            output["forms"]["active"]["benian"] = "Биньян " + page_type.split("–")[-1].strip().lower()
         else:
             headers = soup.find("div", class_="horiz-scroll-wrapper").findAll(
                 "h3", class_="page-header"

@@ -9,12 +9,14 @@ def keyboard_example() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="button 1",
-                    callback_data="button1",
+                    text="Поиск 🔎",
+                    callback_data="search_menu",
                 ),
+            ],
+            [
                 InlineKeyboardButton(
-                    text="button 2",
-                    callback_data="button2",
+                    text="Словарь 📖",
+                    callback_data="dictionary_menu",
                 ),
             ],
         ]

@@ -18,7 +18,9 @@ class User(models.Model):
     moderator = models.BooleanField(default=False, verbose_name="модератор")
 
     def __str__(self):
-        return self.telegram_username
+        if self.telegram_username:
+            return self.telegram_username
+        return "unknown"
 
     class Meta:
         verbose_name = "пользователь"

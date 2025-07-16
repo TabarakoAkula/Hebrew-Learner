@@ -8,7 +8,6 @@ from aiogram.types import (
 )
 from django.conf import settings
 
-
 BOT_TOKEN = settings.BOT_TOKEN
 LOGS_GROUP_ID = settings.LOGS_GROUP_ID
 
@@ -37,19 +36,19 @@ async def send_message(telegram_id: int, data: dict) -> str:
         )
         try:
             if data["inline_reply_markup"]:
-                await notify_bot.send_message(
+                message = await notify_bot.send_message(
                     chat_id=telegram_id,
                     text=data["message"],
                     reply_markup=build_inline_keyboard(data["inline_reply_markup"]),
                 )
             else:
-                await notify_bot.send_message(
+                message = await notify_bot.send_message(
                     chat_id=telegram_id,
                     text=data["message"],
                 )
         except Exception as error:
             return await logs_snitch(f"Error send_message for {telegram_id}: {error}")
-    return f"Sent message to {telegram_id}"
+    return message
 
 
 async def edit_message(telegram_id: int, data: dict) -> str:
@@ -61,21 +60,21 @@ async def edit_message(telegram_id: int, data: dict) -> str:
         )
         try:
             if data["inline_reply_markup"]:
-                await notify_bot.edit_message_text(
+                message = await notify_bot.edit_message_text(
                     chat_id=telegram_id,
                     message_id=data["message_id"],
                     text=data["message"],
                     reply_markup=build_inline_keyboard(data["inline_reply_markup"]),
                 )
             else:
-                await notify_bot.edit_message_text(
+                message = await notify_bot.edit_message_text(
                     chat_id=telegram_id,
                     message_id=data["message_id"],
                     text=data["message"],
                 )
         except Exception as error:
             return await logs_snitch(f"Error edit_message for {telegram_id}: {error}")
-    return f"Edit message for {telegram_id}"
+    return message
 
 
 async def logs_snitch(message: str) -> str:
@@ -83,7 +82,7 @@ async def logs_snitch(message: str) -> str:
         notify_bot = Bot(token=BOT_TOKEN, session=async_session)
         try:
             await notify_bot.send_message(
-                chat_id=LOGS_GROUP_ID,
+                chat_id=1256038298,
                 text=message,
             )
         except Exception as error:

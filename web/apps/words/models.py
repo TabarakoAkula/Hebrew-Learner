@@ -45,12 +45,10 @@ class Word(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="создан")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="обновлен")
-    category = models.ForeignKey(
+    categories = models.ManyToManyField(
         Category,
-        null=True,
         blank=True,
         related_name="words",
-        on_delete=models.CASCADE,
         verbose_name="категория",
     )
     analyzed = models.BooleanField(default=False, verbose_name="анализирован")

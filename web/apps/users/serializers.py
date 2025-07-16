@@ -15,7 +15,7 @@ class UserSerializer(serializers.Serializer):
         except User.DoesNotExist:
             user = User(
                 telegram_id=validated_data.get("telegram_id"),
-                username=validated_data.get("telegram_username"),
+                telegram_username=validated_data.get("telegram_username"),
             )
             user.save()
         return user

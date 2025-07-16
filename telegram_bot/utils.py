@@ -16,14 +16,25 @@ async def simple_post_request(data: dict) -> None:
         requests.post,
         url=DOCKER_URL + f"users/{telegram_id}",
         json=data,
-        headers={"X-Api-Key": API_KEY},
+        headers={"x-api-key": API_KEY},
     )
 
 
-async def simple_get_request(telegram_id: int) -> None:
+async def get_or_create_user(telegram_id: int, data: dict) -> None:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"users/{telegram_id}",
+        headers={"x-api-key": API_KEY},
+        params=data,
+    )
+    return response.json()
+
+
+async def get_or_add_word(data: dict) -> None:
     response = await asyncio.to_thread(
         requests.get,
-        url=DOCKER_URL + f"users/{telegram_id}",
-        params={"api_key": API_KEY},
+        url=DOCKER_URL + "storage/words",
+        headers={"x-api-key": API_KEY},
+        params=data,
     )
     return response.json()

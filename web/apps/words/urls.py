@@ -7,6 +7,6 @@ router = DefaultRouter()
 router.register(r"categories", views.GetCategoriesView, basename="category")
 
 urlpatterns = [
-    path("<str:word>/", views.GetWordView.as_view()),
+    path("words", views.GetWordView.as_view()),
     path("", include(router.urls)),
 ]
