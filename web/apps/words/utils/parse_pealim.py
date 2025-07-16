@@ -161,12 +161,16 @@ def get_word(link: str) -> dict:
         infinitive = soup.find("div", id="INF-L")
         output["infinitive"] = {
             "menukad": infinitive.find("span", class_="menukad").text.strip(),
-            "transcription": infinitive.find("div", class_="transcription").text.strip(),
+            "transcription": infinitive.find(
+                "div", class_="transcription"
+            ).text.strip(),
         }
         output["type"] = "verb"
         if len(tables) == 1:
             output["forms"]["active"] = get_verb_text(tables[0])
-            output["forms"]["active"]["benian"] = "Биньян " + page_type.split("–")[-1].strip().lower()
+            output["forms"]["active"]["benian"] = (
+                "Биньян " + page_type.split("–")[-1].strip().lower()
+            )
         else:
             headers = soup.find("div", class_="horiz-scroll-wrapper").findAll(
                 "h3", class_="page-header"

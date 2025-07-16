@@ -18,10 +18,12 @@ class UserGetCreateView(APIView):
         try:
             user = User.objects.get(telegram_id=telegram_id)
         except User.DoesNotExist:
-            serializer = UserSerializer(data={
-                "telegram_id": telegram_id,
-                "telegram_username": request.GET.get("telegram_username"),
-            })
+            serializer = UserSerializer(
+                data={
+                    "telegram_id": telegram_id,
+                    "telegram_username": request.GET.get("telegram_username"),
+                }
+            )
             if serializer.is_valid():
                 serializer.save()
                 data = serializer.data

@@ -1,6 +1,3 @@
-import re
-from aiogram import html
-
 TYPES_DICT: str = {
     "verb": "глагол",
     "noun": "существительное",
@@ -28,8 +25,10 @@ def create_words_form_message(data: dict) -> str:
     present: str = "\n".join(d["present"])
     past: str = "\n".join(d["past"])
     future: str = "\n".join(d["future"])
+    transcription: str = data["infinitive"]["transcription"]
+    menukad: str = data["infinitive"]["menukad"]
     return f"""
-{TYPES_DICT[data["type"]].capitalize()} *{data["infinitive"]["menukad"]}* {{{data["infinitive"]["transcription"]}}}
+{TYPES_DICT[data["type"]].capitalize()} *{menukad}* {{{transcription}}}
 *{data["translation"]}*
 *{d["benian"]}*
 Корень: *{data["sqrt"]}*

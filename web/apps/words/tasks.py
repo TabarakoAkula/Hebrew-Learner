@@ -1,9 +1,8 @@
 import asyncio
-import html
 
-from apps.words.notifier import edit_message, logs_snitch, send_message
-from apps.words.utils import parse_pealim, parse_iris, utils
 from apps.words.models import Word
+from apps.words.notifier import edit_message, send_message
+from apps.words.utils import parse_pealim, utils
 from celery import shared_task
 from django.conf import settings
 
@@ -22,7 +21,7 @@ def celery_analyze_word(data: dict) -> None:
     message = manager_send_message(
         {
             "telegram_id": data["telegram_id"],
-            "data": {"message": "Wait", "inline_reply_markup": []}
+            "data": {"message": "Wait", "inline_reply_markup": []},
         },
         use_celery=False,
     )
