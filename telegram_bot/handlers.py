@@ -31,6 +31,11 @@ async def start_handler(message: Message, state: FSMContext):
         )
 
 
+@router.callback_query(F.data == "back_to_menu")
+async def back_to_menu(callback: CallbackQuery, state: FSMContext):
+    return await start_handler(callback.message, state)
+
+
 @router.callback_query(F.data == "search_menu")
 async def search_menu_hanlder(callback: CallbackQuery, state: FSMContext):
     await state.set_state(states.SearchStatesGroup.menu)
@@ -50,4 +55,32 @@ async def search_result(message: Message, state: FSMContext):
     if not response["success"]:
         return await message.answer("⚠️ Неизвестная ошибка!")
     if not response["data"]["new"]:
+        await state.set_data(data=response["data"])
         await message.answer(str(response["data"]))
+
+
+@router.callback_query(F.data.startswith("get_imperative_"))
+async def get_imperative_form(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    if data["data"]:
+        await callback.message.answer("we already have it")
+    else:
+        await callback.message.answer("нужно отправить запрос")
+    await callback.message.answer(callback.data)
+
+
+@router.callback_query(F.data.startswith("get_passive_"))
+async def get_imperative_form(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    if data["data"]:
+        await callback.message.answer("we already have it")
+    else:
+        await callback.message.answer("нужно отправить запрос")
+        data = await utils.get_or_add_word(
+            {
+                "telegram_id": message.chat.id,
+                "word": message.text,
+                "message_id": message.message_id,
+            }
+        )
+    await callback.message.answer(str(data["data"]))
