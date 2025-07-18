@@ -93,7 +93,7 @@ async def get_passive_form(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     word_data = data.get("data")
     if not word_data:
-        response = await utils.get_by_link(
+        await utils.get_by_link(
             {
                 "telegram_id": callback.message.chat.id,
                 "link": callback.data.split("_")[-1],
@@ -102,15 +102,15 @@ async def get_passive_form(callback: CallbackQuery, state: FSMContext):
                 "passive": True,
             }
         )
-        word_data = response["data"]
-    if word_data["multiply"]:
-        return
-    formatted_message = await utils.get_word_formatting(word_data, passive=True)
-    await callback.message.edit_text(
-        formatted_message["text"],
-        reply_markup=formatted_message["keyboard"],
-        parse_mode="Markdown",
-    )
+    else:
+        if word_data.get("multiply"):
+            return
+        formatted_message = await utils.get_word_formatting(word_data, passive=True)
+        await callback.message.edit_text(
+            formatted_message["text"],
+            reply_markup=formatted_message["keyboard"],
+            parse_mode="Markdown",
+        )
 
 
 @router.callback_query(F.data.startswith("get_by_link_"))
