@@ -9,8 +9,8 @@ class WordsAdmin(ModelAdmin):
         "hebrew_word",
         "pealim_link",
         "get_categories",
-        "data",
         "analyzed",
+        "multiply",
         "created_at",
         "updated_at",
     )

@@ -49,38 +49,75 @@ async def search_result(message: Message, state: FSMContext):
         {
             "telegram_id": message.chat.id,
             "word": message.text,
-            "message_id": message.message_id,
         }
     )
     if not response["success"]:
+        print("Error:", response)
         return await message.answer("⚠️ Неизвестная ошибка!")
     if not response["data"]["new"]:
-        await state.set_data(data=response["data"])
-        await message.answer(str(response["data"]))
+        await state.update_data(data={"data": response["data"]})
+        formatted_message = await utils.get_word_formatting(response["data"])
+        await message.answer(formatted_message["text"], reply_markup=formatted_message["keyboard"], parse_mode="Markdown")
 
 
 @router.callback_query(F.data.startswith("get_imperative_"))
 async def get_imperative_form(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    if data["data"]:
-        await callback.message.answer("we already have it")
+    word_data = data.get("data")
+    if not word_data:
+        response = await utils.get_by_link(
+            {
+                "telegram_id": callback.message.chat.id,
+                "link": callback.data.split("_")[-1],
+                "message_id": callback.message.message_id,
+                "imperative": True,
+                "passive": False,
+            }
+        )
     else:
-        await callback.message.answer("нужно отправить запрос")
-    await callback.message.answer(callback.data)
+        if word_data.get("multiply"):
+            return
+        formatted_message = await utils.get_word_formatting(word_data, imperative=True)
+        await callback.message.edit_text(
+            formatted_message["text"],
+            reply_markup=formatted_message["keyboard"],
+            parse_mode="Markdown",
+        )
 
 
 @router.callback_query(F.data.startswith("get_passive_"))
-async def get_imperative_form(callback: CallbackQuery, state: FSMContext):
+async def get_passive_form(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    if data["data"]:
-        await callback.message.answer("we already have it")
-    else:
-        await callback.message.answer("нужно отправить запрос")
-        data = await utils.get_or_add_word(
+    word_data = data.get("data")
+    if not word_data:
+        response = await utils.get_by_link(
             {
-                "telegram_id": message.chat.id,
-                "word": message.text,
-                "message_id": message.message_id,
+                "telegram_id": callback.message.chat.id,
+                "link": callback.data.split("_")[-1],
+                "message_id": callback.message.message_id,
+                "imperative": False,
+                "passive": True,
             }
         )
-    await callback.message.answer(str(data["data"]))
+        word_data = response["data"]
+    if word_data["multiply"]:
+        return
+    formatted_message = await utils.get_word_formatting(word_data, passive=True)
+    await callback.message.edit_text(
+        formatted_message["text"],
+        reply_markup=formatted_message["keyboard"],
+        parse_mode="Markdown",
+    )
+
+
+@router.callback_query(F.data.startswith("get_by_link_"))
+async def get_by_link_form(callback: CallbackQuery, state: FSMContext):
+    await state.set_data({})
+    await utils.get_by_link(
+        {
+            "telegram_id": callback.message.chat.id,
+            "link": callback.data[callback.data.find("_", 9) + 1:].replace("_", "-") + "/",
+            "message_id": callback.message.message_id,
+            "imperative": False
+        }
+    )

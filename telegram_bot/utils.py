@@ -3,11 +3,36 @@ import os
 
 import dotenv
 import requests
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
+
+import word_formatter
 
 dotenv.load_dotenv()
 
 DOCKER_URL = os.getenv("DOCKER_URL")
 API_KEY = os.getenv("API_KEY")
+
+DEFAULT_BUTTONS = [
+    InlineKeyboardButton(
+        text="Search in IRIS",
+        callback_data="ask_question",
+    ),
+    InlineKeyboardButton(
+        text="🔙 В меню",
+        callback_data="back_to_menu",
+    ),
+]
+
+
+def get_imperative_button(word: str) -> dict:
+    return InlineKeyboardButton(text="➕ Повелительное наклонение", callback_data=f"get_imperative_{word}")
+
+
+def get_passive_button(word: str) -> dict:
+    return InlineKeyboardButton(text="➕ Страдательный залог", callback_data=f"get_passive_{word}")
 
 
 async def simple_post_request(data: dict) -> None:
@@ -38,3 +63,35 @@ async def get_or_add_word(data: dict) -> None:
         params=data,
     )
     return response.json()
+
+
+async def get_by_link(data: dict) -> None:
+    response = await asyncio.to_thread(
+        requests.get,
+        url=DOCKER_URL + "storage/words/by-link",
+        headers={"x-api-key": API_KEY},
+        params=data,
+    )
+    return response.json()
+
+
+async def get_word_formatting(data: dict, imperative: bool = False, passive: bool = False) -> dict:
+    reply_markup = []
+    type = data["data"]["type"]
+    if type == "verb":
+        answer_text = word_formatter.verb_create_words_form_message(data["data"], imperative, passive)
+        if answer_text["imperative_mode"] and answer_text["passive_voice"] and not passive and not imperative:
+            reply_markup.append([get_imperative_button(data["data"]["link"]), get_passive_button(data["data"]["link"])])
+        elif answer_text["imperative_mode"] and not imperative:
+            reply_markup.append([get_imperative_button(data["data"]["link"])])
+        elif answer_text["passive_voice"] and not passive:
+            reply_markup.append([get_passive_button(data["data"]["link"])])
+    elif type in ["noun", "adj"]:
+        answer_text = word_formatter.noun_create_words_form_message(data["data"])
+    elif type in ["adv", "union", "pronoun", "interjection"]:
+        answer_text = word_formatter.basic_create_words_from_message(data["data"])
+    elif type == "pretext":
+        answer_text = word_formatter.pretext_create_words_form_message(data["data"])
+    else:
+        answer_text = "Неизвестная ошибка"
+    return {"text": answer_text["text"], "keyboard": InlineKeyboardMarkup(inline_keyboard=[*reply_markup, DEFAULT_BUTTONS])}

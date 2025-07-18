@@ -166,6 +166,7 @@ def get_word(link: str) -> dict:
     output = {
         "forms": {},
         "sqrt": "",
+        "link": link.split("/")[-2],
     }
     response = requests.get(BASE_LINK + link)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -202,12 +203,10 @@ def get_word(link: str) -> dict:
                 )
     elif page_type.lower().count("существительное"):
         output["type"] = "noun"
-        output["base_form"] = soup.find("h2", "page-header").contents[0].text.split()[-1].strip()
         output["forms"] = get_noun_text(tables[0])
     elif page_type.lower().count("прилагательное"):
         output["type"] = "adj"
         output["forms"] = get_adj_text(tables[0])
-        output["base_form"] = soup.find("h2", "page-header").contents[0].text.split()[-1].strip()
     elif page_type.lower().count("наречие"):
         output["type"] = "adv"
         lead = soup.findAll("div", class_="lead")[1]
@@ -239,7 +238,7 @@ def get_word(link: str) -> dict:
     if output["type"] in ["adv", "union", "pretext", "pronoun", "interjection"] and lead:
         output["transcription"] = lead.find("div", "transcription").text.replace("-", "").strip()
         output["base_form"] = lead.find("span", "menukad").text.replace("־", "").strip()
-    elif output["type"] == "pronoun" and not lead:
+    elif output["type"] in ["pronoun", "noun", "adj", "verb"] and not lead:
         output["base_form"] = soup.find("h2", "page-header").contents[0].text.split()[-1].strip()
 
     output["translation"] = soup.find("div", class_="lead").text.strip().capitalize()

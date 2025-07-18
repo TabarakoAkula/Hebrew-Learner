@@ -24,14 +24,14 @@ def get_clear_text(text: str) -> str:
     return re.sub(r"[\u0591-\u05C7]", "", text).strip()
 
 
-def verb_create_words_form_message(data: dict, imperative: bool = False, passive: bool = False) -> dict:
+def verb_create_words_form_message(data: dict, imperative: bool, passive: bool) -> dict:
     forms = data.get("forms")
     active = forms.get("active")
-    active_text = "\n_Действительный залог_" if passive else ""
+
     present = "\n".join(active.get("present"))
     past = "\n".join(active.get("past"))
     future = "\n".join(active.get("future"))
-
+    active_text = "\n_Действительный залог_" if passive else ""
     transcription = data.get("infinitive").get("transcription")
     menukad = data.get("infinitive").get("menukad")
     verb_type = TYPES_DICT.get(data.get("type")).capitalize()
@@ -48,11 +48,11 @@ def verb_create_words_form_message(data: dict, imperative: bool = False, passive
 *буд. вр.*
 {future}
 """
-    if imperative:
+    if imperative and not text.count("пов. накл.:"):
         imperative_text = "*пов. накл.:*\n" + "\n".join(active.get("imperative"))
         text += imperative_text
 
-    if passive:
+    if passive and not text.count("Страдательный залог"):
         passive = forms.get("passive")
         present = "\n".join(passive.get("present"))
         past = "\n".join(passive.get("past"))

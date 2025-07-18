@@ -52,6 +52,7 @@ class Word(models.Model):
         verbose_name="категория",
     )
     analyzed = models.BooleanField(default=False, verbose_name="анализирован")
+    multiply = models.BooleanField(default=False, verbose_name="множественное")
 
     def __str__(self):
         return self.hebrew_word

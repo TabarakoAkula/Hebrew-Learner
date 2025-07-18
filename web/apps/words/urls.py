@@ -8,5 +8,6 @@ router.register(r"categories", views.GetCategoriesView, basename="category")
 
 urlpatterns = [
     path("words", views.GetWordView.as_view()),
+    path("words/by-link", views.GetWordByLinkView.as_view()),
     path("", include(router.urls)),
 ]
