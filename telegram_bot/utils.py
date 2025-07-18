@@ -1,13 +1,12 @@
 import asyncio
 import os
 
-import dotenv
-import requests
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
-
+import dotenv
+import requests
 import word_formatter
 
 dotenv.load_dotenv()
@@ -28,11 +27,17 @@ DEFAULT_BUTTONS = [
 
 
 def get_imperative_button(word: str) -> dict:
-    return InlineKeyboardButton(text="➕ Повелительное наклонение", callback_data=f"get_imperative_{word}")
+    return InlineKeyboardButton(
+        text="➕ Повелительное наклонение",
+        callback_data=f"get_imperative_{word}",
+    )
 
 
 def get_passive_button(word: str) -> dict:
-    return InlineKeyboardButton(text="➕ Страдательный залог", callback_data=f"get_passive_{word}")
+    return InlineKeyboardButton(
+        text="➕ Страдательный залог",
+        callback_data=f"get_passive_{word}",
+    )
 
 
 async def simple_post_request(data: dict) -> None:
@@ -75,13 +80,28 @@ async def get_by_link(data: dict) -> None:
     return response.json()
 
 
-async def get_word_formatting(data: dict, imperative: bool = False, passive: bool = False) -> dict:
+async def get_word_formatting(
+    data: dict, imperative: bool = False, passive: bool = False
+) -> dict:
+    await asyncio.sleep(0)
     reply_markup = []
     type = data["data"]["type"]
     if type == "verb":
-        answer_text = word_formatter.verb_create_words_form_message(data["data"], imperative, passive)
-        if answer_text["imperative_mode"] and answer_text["passive_voice"] and not passive and not imperative:
-            reply_markup.append([get_imperative_button(data["data"]["link"]), get_passive_button(data["data"]["link"])])
+        answer_text = word_formatter.verb_create_words_form_message(
+            data["data"], imperative, passive
+        )
+        if (
+            answer_text["imperative_mode"]
+            and answer_text["passive_voice"]
+            and not passive
+            and not imperative
+        ):
+            reply_markup.append(
+                [
+                    get_imperative_button(data["data"]["link"]),
+                    get_passive_button(data["data"]["link"]),
+                ]
+            )
         elif answer_text["imperative_mode"] and not imperative:
             reply_markup.append([get_imperative_button(data["data"]["link"])])
         elif answer_text["passive_voice"] and not passive:
@@ -94,4 +114,9 @@ async def get_word_formatting(data: dict, imperative: bool = False, passive: boo
         answer_text = word_formatter.pretext_create_words_form_message(data["data"])
     else:
         answer_text = "Неизвестная ошибка"
-    return {"text": answer_text["text"], "keyboard": InlineKeyboardMarkup(inline_keyboard=[*reply_markup, DEFAULT_BUTTONS])}
+    return {
+        "text": answer_text["text"],
+        "keyboard": InlineKeyboardMarkup(
+            inline_keyboard=[*reply_markup, DEFAULT_BUTTONS]
+        ),
+    }

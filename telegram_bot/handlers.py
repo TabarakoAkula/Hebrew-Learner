@@ -52,12 +52,15 @@ async def search_result(message: Message, state: FSMContext):
         }
     )
     if not response["success"]:
-        print("Error:", response)
         return await message.answer("⚠️ Неизвестная ошибка!")
     if not response["data"]["new"]:
         await state.update_data(data={"data": response["data"]})
         formatted_message = await utils.get_word_formatting(response["data"])
-        await message.answer(formatted_message["text"], reply_markup=formatted_message["keyboard"], parse_mode="Markdown")
+        await message.answer(
+            formatted_message["text"],
+            reply_markup=formatted_message["keyboard"],
+            parse_mode="Markdown",
+        )
 
 
 @router.callback_query(F.data.startswith("get_imperative_"))
@@ -65,7 +68,7 @@ async def get_imperative_form(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     word_data = data.get("data")
     if not word_data:
-        response = await utils.get_by_link(
+        await utils.get_by_link(
             {
                 "telegram_id": callback.message.chat.id,
                 "link": callback.data.split("_")[-1],
@@ -116,8 +119,9 @@ async def get_by_link_form(callback: CallbackQuery, state: FSMContext):
     await utils.get_by_link(
         {
             "telegram_id": callback.message.chat.id,
-            "link": callback.data[callback.data.find("_", 9) + 1:].replace("_", "-") + "/",
+            "link": callback.data[callback.data.find("_", 9) + 1 :].replace("_", "-")
+            + "/",
             "message_id": callback.message.message_id,
-            "imperative": False
+            "imperative": False,
         }
     )

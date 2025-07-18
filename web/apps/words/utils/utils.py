@@ -24,7 +24,9 @@ def get_clear_text(text: str) -> str:
     return re.sub(r"[\u0591-\u05C7]", "", text).strip()
 
 
-def verb_create_words_form_message(data: dict, imperative: bool = False, passive: bool = False) -> dict:
+def verb_create_words_form_message(
+    data: dict, imperative: bool = False, passive: bool = False
+) -> dict:
     forms = data.get("forms")
     active = forms.get("active")
     active_text = "\n_Действительный залог_" if passive else ""
@@ -124,5 +126,7 @@ def get_many_results_message(data: dict) -> dict:
                 "label": word.get("type").capitalize() + " | " + word.get("label"),
             }
         )
-        text += f"{word.get('type').capitalize()} *{word.get('label')}* - _{word.get('translation')}_\n\n"
+        type_text = word.get("type").capitalize()
+        label_text = word.get("label")
+        text += f"{type_text} *{label_text}* - _{word.get('translation')}_\n\n"
     return {"text": text.strip(), "buttons": buttons_data}

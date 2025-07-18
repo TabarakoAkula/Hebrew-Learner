@@ -124,5 +124,7 @@ def get_many_results_message(data: dict) -> dict:
                 "label": word.get("type").capitalize() + " | " + word.get("label"),
             }
         )
-        text += f"{word.get('type').capitalize()} *{word.get('label')}* - _{word.get('translation')}_\n\n"
+        type_text = word.get("type").capitalize()
+        label_text = word.get("label")
+        text += f"{type_text} *{label_text}* - _{word.get('translation')}_\n\n"
     return {"text": text.strip(), "buttons": buttons_data}

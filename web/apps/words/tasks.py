@@ -21,11 +21,17 @@ DEFAULT_BUTTONS = [
 
 
 def get_imperative_button(word: str) -> dict:
-    return {"title": "➕ Повелительное наклонение", "callback": f"get_imperative_{word}"}
+    return {
+        "title": "➕ Повелительное наклонение",
+        "callback": f"get_imperative_{word}",
+    }
 
 
 def get_passive_button(word: str) -> dict:
-    return {"title": "➕ Страдательный залог", "callback": f"get_passive_{word}"}
+    return {
+        "title": "➕ Страдательный залог",
+        "callback": f"get_passive_{word}",
+    }
 
 
 def manager_analyze_word(data: dict) -> None:
@@ -70,8 +76,18 @@ def celery_analyze_word(data: dict, link="") -> None:
                 data.get("imperative", False),
                 data.get("passive", False),
             )
-            if answer_text["imperative_mode"] and answer_text["passive_voice"] and not data.get("imperative", False) and not data.get("passive", False):
-                reply_markup.append([get_imperative_button(hebrew_link), get_passive_button(hebrew_link)])
+            if (
+                answer_text["imperative_mode"]
+                and answer_text["passive_voice"]
+                and not data.get("imperative", False)
+                and not data.get("passive", False)
+            ):
+                reply_markup.append(
+                    [
+                        get_imperative_button(hebrew_link),
+                        get_passive_button(hebrew_link),
+                    ]
+                )
             elif answer_text["imperative_mode"] and not data.get("imperative", False):
                 reply_markup.append([get_imperative_button(hebrew_link)])
             elif answer_text["passive_voice"] and not data.get("passive", False):
@@ -93,15 +109,19 @@ def celery_analyze_word(data: dict, link="") -> None:
         word.save()
         answer_text = utils.get_many_results_message(word_links)
         for i in answer_text["buttons"]:
-            reply_markup.append([{"title": i["label"], "callback": "get_by_link_" + i["link"]}])
+            reply_markup.append(
+                [{"title": i["label"], "callback": "get_by_link_" + i["link"]}]
+            )
     elif not word_links:
-            answer_text = {"text": "Не удалось ничего найти"}
+        answer_text = {"text": "Не удалось ничего найти"}
     return asyncio.run(
         edit_message(
             data["telegram_id"],
             {
                 "message": utils.normalize_text(answer_text["text"]),
-                "message_id": data["message_id"] if data.get("message_id") else message.message_id,
+                "message_id": (
+                    data["message_id"] if data.get("message_id") else message.message_id
+                ),
                 "inline_reply_markup": [*reply_markup, DEFAULT_BUTTONS],
             },
         ),

@@ -55,4 +55,4 @@ indent-size = 4
 exclude = "migrations"
 inline-quotes = '"'
 import-order-style = "google"
-ignore = "A003"
+ignore = "A003 W503 E203"

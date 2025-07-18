@@ -41,7 +41,7 @@ VERB_SETTINGS = {
         ("נ.", "IMP-2fs"),
         ('ז"ר', "IMP-2mp"),
         ('נ"ר', "IMP-2fp"),
-    ]
+    ],
 }
 
 VOICES = {
@@ -235,11 +235,18 @@ def get_word(link: str) -> dict:
         except AttributeError:
             output["sqrt"] = ""
 
-    if output["type"] in ["adv", "union", "pretext", "pronoun", "interjection"] and lead:
-        output["transcription"] = lead.find("div", "transcription").text.replace("-", "").strip()
+    if (
+        output["type"] in ["adv", "union", "pretext", "pronoun", "interjection"]
+        and lead
+    ):
+        output["transcription"] = (
+            lead.find("div", "transcription").text.replace("-", "").strip()
+        )
         output["base_form"] = lead.find("span", "menukad").text.replace("־", "").strip()
     elif output["type"] in ["pronoun", "noun", "adj", "verb"] and not lead:
-        output["base_form"] = soup.find("h2", "page-header").contents[0].text.split()[-1].strip()
+        output["base_form"] = (
+            soup.find("h2", "page-header").contents[0].text.split()[-1].strip()
+        )
 
     output["translation"] = soup.find("div", class_="lead").text.strip().capitalize()
     return output
