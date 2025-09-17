@@ -10,10 +10,6 @@ USE_CELERY = settings.USE_CELERY
 BASE_PEALIM_LINK = "https://www.pealim.com"
 DEFAULT_BUTTONS = [
     {
-        "title": "Search in IRIS",
-        "callback": "ask_question",
-    },
-    {
         "title": "🔙 В меню",
         "callback": "back_to_menu",
     },

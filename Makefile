@@ -20,3 +20,6 @@ build:
 
 build_d:
 	docker compose up -d --build
+
+migrations:
+	cd web && python manage.py makemigrations

@@ -16,10 +16,6 @@ API_KEY = os.getenv("API_KEY")
 
 DEFAULT_BUTTONS = [
     InlineKeyboardButton(
-        text="Search in IRIS",
-        callback_data="ask_question",
-    ),
-    InlineKeyboardButton(
         text="🔙 В меню",
         callback_data="back_to_menu",
     ),

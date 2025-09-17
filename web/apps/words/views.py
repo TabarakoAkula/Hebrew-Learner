@@ -1,8 +1,7 @@
-from apps.words.models import Category, Word
-from apps.words.serializers import CategorySerializer, WordSerializer
+from apps.words.models import Word
+from apps.words.serializers import WordSerializer
 from apps.words.tasks import manager_analyze_word
 from rest_framework.views import APIView, Response
-from rest_framework.viewsets import ModelViewSet
 
 
 class GetWordView(APIView):
@@ -69,9 +68,3 @@ class GetWordByLinkView(APIView):
             },
         )
         return Response({"success": True, "data": {}})
-
-
-class GetCategoriesView(ModelViewSet):
-    lookup_field = "hebrew_name"
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer

@@ -26,7 +26,7 @@ async def start_handler(message: Message, state: FSMContext):
     answer_message = "Привет, в этом боте ты можешь искать перевод слов с иврита"
     if response["data"]["New"]:
         answer_message = "Поздравляю с первым запуском🥳\n\n" + answer_message
-    await message.answer(answer_message, reply_markup=keyboards.keyboard_example())
+    await message.answer(answer_message, reply_markup=keyboards.main_menu())
     if response["data"]["moderator"]:
         await message.answer(
             "⚠️ У вас есть права модератора:\n\n- Редактировать категории"
@@ -41,7 +41,10 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "search_menu")
 async def search_menu_hanlder(callback: CallbackQuery, state: FSMContext):
     await state.set_state(states.SearchStatesGroup.menu)
-    await callback.message.edit_text("Введи слово для поиска:")
+    await callback.message.edit_text(
+        "Введи слово для поиска:",
+        reply_markup=keyboards.return_to_menu(),
+    )
 
 
 @router.message(SEARCH_FILTER)

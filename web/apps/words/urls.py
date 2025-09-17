@@ -4,7 +4,6 @@ from rest_framework.routers import DefaultRouter
 
 
 router = DefaultRouter()
-router.register(r"categories", views.GetCategoriesView, basename="category")
 
 urlpatterns = [
     path("words", views.GetWordView.as_view()),

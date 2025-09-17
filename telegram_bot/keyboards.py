@@ -4,7 +4,7 @@ from aiogram.types import (
 )
 
 
-def keyboard_example() -> InlineKeyboardMarkup:
+def main_menu() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -13,11 +13,18 @@ def keyboard_example() -> InlineKeyboardMarkup:
                     callback_data="search_menu",
                 ),
             ],
+        ]
+    )
+
+
+def return_to_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Словарь 📖",
-                    callback_data="dictionary_menu",
-                ),
-            ],
+                    text="🔙 В меню",
+                    callback_data="back_to_menu",
+                )
+            ]
         ]
     )
