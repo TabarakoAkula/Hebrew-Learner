@@ -4,7 +4,11 @@ from rest_framework import serializers
 
 class UserSerializer(serializers.Serializer):
     telegram_id = serializers.CharField(max_length=120, required=True)
-    telegram_username = serializers.CharField(max_length=256, required=False)
+    telegram_username = serializers.CharField(
+        max_length=256,
+        required=False,
+        allow_blank=True,
+    )
     created_at = serializers.DateTimeField(read_only=True, required=False)
     updated_at = serializers.DateTimeField(read_only=True, required=False)
     moderator = serializers.BooleanField(default=False, read_only=True)

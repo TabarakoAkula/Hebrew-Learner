@@ -21,6 +21,8 @@ async def start_handler(message: Message, state: FSMContext):
         message.chat.id,
         {"telegram_username": message.chat.username},
     )
+    if not response["success"]:
+        return await message.answer(response["message"])
     answer_message = "Привет, в этом боте ты можешь искать перевод слов с иврита"
     if response["data"]["New"]:
         answer_message = "Поздравляю с первым запуском🥳\n\n" + answer_message
@@ -52,7 +54,7 @@ async def search_result(message: Message, state: FSMContext):
         }
     )
     if not response["success"]:
-        return await message.answer("⚠️ Неизвестная ошибка!")
+        return await message.answer(response["message"])
     if not response["data"]["new"]:
         await state.update_data(data={"data": response["data"]})
         formatted_message = await utils.get_word_formatting(response["data"])

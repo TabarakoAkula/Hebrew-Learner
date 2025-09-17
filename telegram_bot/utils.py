@@ -26,14 +26,31 @@ DEFAULT_BUTTONS = [
 ]
 
 
-def get_imperative_button(word: str) -> dict:
+def check_success(function_name):
+    def decorator(func):
+        async def wrapper(*args, **kwargs):
+            result = await func(*args, **kwargs)
+            if isinstance(result, dict) and result.get("success") is False:
+                print(
+                    f"Error at {function_name} function. "
+                    f"Message: {result.get('message')}. "
+                    f"Data: {result.get('data')}"
+                )
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def get_imperative_button(word: str) -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text="➕ Повелительное наклонение",
         callback_data=f"get_imperative_{word}",
     )
 
 
-def get_passive_button(word: str) -> dict:
+def get_passive_button(word: str) -> InlineKeyboardButton:
     return InlineKeyboardButton(
         text="➕ Страдательный залог",
         callback_data=f"get_passive_{word}",
@@ -50,6 +67,7 @@ async def simple_post_request(data: dict) -> None:
     )
 
 
+@check_success("get_or_create_user")
 async def get_or_create_user(telegram_id: int, data: dict) -> None:
     response = await asyncio.to_thread(
         requests.post,
@@ -60,6 +78,7 @@ async def get_or_create_user(telegram_id: int, data: dict) -> None:
     return response.json()
 
 
+@check_success("get_or_add_word")
 async def get_or_add_word(data: dict) -> None:
     response = await asyncio.to_thread(
         requests.get,
@@ -70,6 +89,7 @@ async def get_or_add_word(data: dict) -> None:
     return response.json()
 
 
+@check_success("get_by_link")
 async def get_by_link(data: dict) -> None:
     response = await asyncio.to_thread(
         requests.get,

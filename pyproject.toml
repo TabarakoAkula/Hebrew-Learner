@@ -23,6 +23,7 @@ celery = "^5.5.2"
 django-unfold = "^0.55.3"
 gunicorn = "^23.0.0"
 cloudscraper = "^1.2.71"
+beautifulsoup4 = "^4.13.5"
 
 [tool.poetry.group.bot.dependencies]
 requests = "^2.32.3"
@@ -55,4 +56,4 @@ indent-size = 4
 exclude = "migrations"
 inline-quotes = '"'
 import-order-style = "google"
-ignore = "A003 W503 E203"
+ignore = "A003 W503 E203 T201"

@@ -18,10 +18,11 @@ class UserGetCreateView(APIView):
         try:
             user = User.objects.get(telegram_id=telegram_id)
         except User.DoesNotExist:
+            telegram_username = request.data.get("telegram_username", "")
             serializer = UserSerializer(
                 data={
                     "telegram_id": telegram_id,
-                    "telegram_username": request.GET.get("telegram_username"),
+                    "telegram_username": telegram_username,
                 }
             )
             if serializer.is_valid():
@@ -29,7 +30,13 @@ class UserGetCreateView(APIView):
                 data = serializer.data
                 data["New"] = True
             else:
-                return {"success": False, "message": "Failed on creating new user"}
+                return Response(
+                    {
+                        "success": False,
+                        "message": "⚠️ Unknown error on creating new user",
+                        "data": serializer.errors,
+                    },
+                )
         else:
             serializer = UserSerializer(user)
             data = serializer.data
