@@ -35,6 +35,7 @@ async def start_handler(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "back_to_menu")
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     return await start_handler(callback.message, state)
 
 
@@ -131,4 +132,29 @@ async def get_by_link_form(callback: CallbackQuery, state: FSMContext):
             "message_id": callback.message.message_id,
             "imperative": False,
         }
+    )
+
+
+@router.callback_query(F.data.startswith("report"))
+async def report_menu_handler(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(states.ReportStatesGroup.input)
+    await callback.message.answer(
+        "📍 Напиши своё предложение ниже, оно будет отправлено разработчику",
+        reply_markup=keyboards.return_to_menu(),
+    )
+
+
+@router.message(states.ReportStatesGroup.input)
+async def input_report_handler(message: Message, state: FSMContext):
+    await state.clear()
+    await utils.send_report(
+        {
+            "telegram_id": message.chat.id,
+            "telegram_username": message.chat.username,
+            "report_text": message.text,
+        }
+    )
+    await message.answer(
+        "✅ Сообщение успешно отправлено",
+        reply_markup=keyboards.return_to_menu(),
     )

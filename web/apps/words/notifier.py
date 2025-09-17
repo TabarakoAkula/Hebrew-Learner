@@ -79,10 +79,14 @@ async def edit_message(telegram_id: int, data: dict) -> str:
 
 async def logs_snitch(message: str) -> str:
     async with AiohttpSession() as async_session:
-        notify_bot = Bot(token=BOT_TOKEN, session=async_session)
+        notify_bot = Bot(
+            token=BOT_TOKEN,
+            session=async_session,
+            default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
+        )
         try:
             await notify_bot.send_message(
-                chat_id=1256038298,
+                chat_id=LOGS_GROUP_ID,
                 text=message,
             )
         except Exception as error:

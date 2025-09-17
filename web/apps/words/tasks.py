@@ -13,6 +13,10 @@ DEFAULT_BUTTONS = [
         "title": "🔙 В меню",
         "callback": "back_to_menu",
     },
+    {
+        "title": "📍",
+        "callback": "report",
+    },
 ]
 
 

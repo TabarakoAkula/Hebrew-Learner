@@ -22,8 +22,9 @@ DEFAULT_BUTTONS = [
     ),
 ]
 
+
 def check_hebrew_letters(word: str) -> bool:
-    return bool(re.match(r'^[\u0590-\u05FF]+$', word))
+    return bool(re.match(r"^[\u0590-\u05FF]+$", word))
 
 
 def check_success(function_name):
@@ -74,6 +75,17 @@ async def get_or_create_user(telegram_id: int, data: dict) -> None:
         url=DOCKER_URL + f"users/{telegram_id}",
         headers={"x-api-key": API_KEY},
         params=data,
+    )
+    return response.json()
+
+
+@check_success("send_report")
+async def send_report(data: dict) -> None:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"users/{data['telegram_id']}/report",
+        headers={"x-api-key": API_KEY},
+        json=data,
     )
     return response.json()
 

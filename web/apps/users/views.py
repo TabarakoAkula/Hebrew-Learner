@@ -1,3 +1,4 @@
+from apps.users import tasks
 from apps.users.models import User
 from apps.users.serializers import UserSerializer
 from rest_framework.views import APIView, Response
@@ -70,3 +71,16 @@ class UserGetCreateView(APIView):
             serializer.save()
             return Response({"success": True, "data": serializer.data})
         return Response({"success": False, "message": serializer.errors})
+
+
+class SendReportAPIView(APIView):
+    @staticmethod
+    def post(request, telegram_id: str):
+        tasks.manager_snitch_logs(
+            {
+                "telegram_id": telegram_id,
+                "telegram_username": request.data.get("telegram_username", ""),
+                "message": request.data.get("message", " empty message"),
+            }
+        )
+        return Response({"success": True})
