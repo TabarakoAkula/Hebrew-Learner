@@ -50,6 +50,8 @@ async def search_menu_hanlder(callback: CallbackQuery, state: FSMContext):
 @router.message(SEARCH_FILTER)
 async def search_result(message: Message, state: FSMContext):
     await state.set_state(states.SearchStatesGroup.result)
+    if not utils.check_hebrew_letters(message.text):
+        return await message.answer("❗️Введено слово не на иврите")
     response = await utils.get_or_add_word(
         {
             "telegram_id": message.chat.id,

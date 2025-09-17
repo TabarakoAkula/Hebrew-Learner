@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -20,6 +21,9 @@ DEFAULT_BUTTONS = [
         callback_data="back_to_menu",
     ),
 ]
+
+def check_hebrew_letters(word: str) -> bool:
+    return bool(re.match(r'^[\u0590-\u05FF]+$', word))
 
 
 def check_success(function_name):
