@@ -22,4 +22,4 @@ build_d:
 	docker compose up -d --build
 
 migrations:
-	cd web && python manage.py makemigrations
+	cd web && python manage.py makemigrations && python manage.py migrate
