@@ -6,5 +6,9 @@ class SearchStatesGroup(StatesGroup):
     result = State()
 
 
-class ReportStatesGroup(StatesGroup):
+class SendReportStatesGroup(StatesGroup):
+    input = State()
+
+
+class AnswerReportStatesGroup(StatesGroup):
     input = State()

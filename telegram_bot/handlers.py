@@ -137,24 +137,52 @@ async def get_by_link_form(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("report"))
 async def report_menu_handler(callback: CallbackQuery, state: FSMContext):
-    await state.set_state(states.ReportStatesGroup.input)
+    await state.set_state(states.SendReportStatesGroup.input)
     await callback.message.answer(
         "📍 Напиши своё предложение ниже, оно будет отправлено разработчику",
         reply_markup=keyboards.return_to_menu(),
     )
 
 
-@router.message(states.ReportStatesGroup.input)
-async def input_report_handler(message: Message, state: FSMContext):
+@router.message(states.SendReportStatesGroup.input)
+async def input_send_report_handler(message: Message, state: FSMContext):
     await state.clear()
     await utils.send_report(
         {
             "telegram_id": message.chat.id,
             "telegram_username": message.chat.username,
-            "report_text": message.text,
+            "message": message.text,
         }
     )
     await message.answer(
         "✅ Сообщение успешно отправлено",
+        reply_markup=keyboards.return_to_menu(),
+    )
+
+
+@router.callback_query(F.data.startswith("answer_report_"))
+async def answer_report_handler(callback: CallbackQuery, state: FSMContext):
+    await state.set_state(states.AnswerReportStatesGroup.input)
+    await state.update_data({"telegram_id": callback.data.split("_")[-1]})
+    await callback.message.answer(
+        " Введи ответ",
+        reply_markup=keyboards.return_to_menu(),
+    )
+
+
+@router.message(states.AnswerReportStatesGroup.input)
+async def input_answer_report_handler(message: Message, state: FSMContext):
+    data = await state.get_data()
+    await state.clear()
+    response = await utils.answer_report(
+        {
+            "telegram_id": data["telegram_id"],
+            "answer": message.text,
+        }
+    )
+    if not response["success"]:
+        return await message.answer(response["message"])
+    return await message.answer(
+        "✅ Ответ успешно отправлен",
         reply_markup=keyboards.return_to_menu(),
     )

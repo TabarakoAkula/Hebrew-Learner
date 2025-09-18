@@ -83,7 +83,18 @@ async def get_or_create_user(telegram_id: int, data: dict) -> None:
 async def send_report(data: dict) -> None:
     response = await asyncio.to_thread(
         requests.post,
-        url=DOCKER_URL + f"users/{data['telegram_id']}/report",
+        url=DOCKER_URL + f"users/{data['telegram_id']}/report/send",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
+@check_success("answer_report")
+async def answer_report(data: dict) -> None:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"users/{data['telegram_id']}/report/answer",
         headers={"x-api-key": API_KEY},
         json=data,
     )

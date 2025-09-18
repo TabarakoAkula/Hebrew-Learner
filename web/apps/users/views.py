@@ -76,11 +76,27 @@ class UserGetCreateView(APIView):
 class SendReportAPIView(APIView):
     @staticmethod
     def post(request, telegram_id: str):
-        tasks.manager_snitch_logs(
+        tasks.manager_send_report(
             {
                 "telegram_id": telegram_id,
                 "telegram_username": request.data.get("telegram_username", ""),
                 "message": request.data.get("message", " empty message"),
+            }
+        )
+        return Response({"success": True})
+
+
+class AnswerReportAPIView(APIView):
+    @staticmethod
+    def post(request, telegram_id: str):
+        try:
+            answer = request.data["answer"]
+        except KeyError:
+            return Response({"success": False, "message": "Empty answer provided"})
+        tasks.manager_answer_report(
+            {
+                "telegram_id": telegram_id,
+                "message": answer,
             }
         )
         return Response({"success": True})
