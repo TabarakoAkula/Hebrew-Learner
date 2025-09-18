@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "apps.users.apps.UsersConfig",
     "apps.words.apps.WordsConfig",
+    "apps.words_collections.apps.WordsCollectionsConfig",
 ]
 
 MIDDLEWARE = [

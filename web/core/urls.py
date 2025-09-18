@@ -11,6 +11,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/users/", include("apps.users.urls")),
     path("api/v1/storage/", include("apps.words.urls")),
+    path("api/v1/collections/", include("apps.words_collections.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG:
