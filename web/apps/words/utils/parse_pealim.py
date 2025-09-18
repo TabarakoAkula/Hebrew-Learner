@@ -102,7 +102,9 @@ def get_verb_text(soup: str) -> dict:
             except AttributeError:
                 chaser = ""
             transcription = el.find("div", class_="transcription").text.strip()
-            output[time].append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
+            output[time].append(
+                f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}"
+            )
     return output
 
 
@@ -127,7 +129,9 @@ def get_noun_text(soup: str) -> dict:
                 .get_text(strip=True)
                 .replace("-", "")
             )
-            result.append(f"{labels[i].ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
+            result.append(
+                f"{labels[i].ljust(9)}*{menukad} {chaser}* {{{transcription}}}"
+            )
     return result
 
 
@@ -174,7 +178,9 @@ def get_pretext_text(soup: str) -> list:
                 transcription = form.find("div", class_="transcription").get_text(
                     strip=True
                 )
-                result.append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
+                result.append(
+                    f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}"
+                )
     return result
 
 
