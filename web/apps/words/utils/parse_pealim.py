@@ -96,9 +96,13 @@ def get_verb_text(soup: str) -> dict:
                 el = soup.find(id=f"passive-{eid}")
             if not el:
                 continue
-            word = el.find("span", class_="menukad").text.strip()
+            menukad = el.find("span", class_="menukad").text.strip()
+            try:
+                chaser = el.find("span", class_="chaser").text.strip()
+            except AttributeError:
+                chaser = ""
             transcription = el.find("div", class_="transcription").text.strip()
-            output[time].append(f"{label.ljust(9)}*{word}* {{{transcription}}}")
+            output[time].append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return output
 
 
@@ -113,13 +117,17 @@ def get_noun_text(soup: str) -> dict:
         labels = ["יחיד", "רבים"]
 
         for i, cell in enumerate(cells):
-            word = cell.find("span", class_="menukad").text.strip().replace("־", "")
+            menukad = cell.find("span", class_="menukad").text.strip().replace("־", "")
+            try:
+                chaser = cell.find("span", class_="chaser").text.strip()
+            except AttributeError:
+                chaser = ""
             transcription = (
                 cell.find("div", class_="transcription")
                 .get_text(strip=True)
                 .replace("-", "")
             )
-            result.append(f"{labels[i].ljust(9)}*{word}* {{{transcription}}}")
+            result.append(f"{labels[i].ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return result
 
 
@@ -129,11 +137,15 @@ def get_adj_text(soup: str) -> list:
     results = []
 
     for label, cell in zip(labels, cells):
-        word = cell.find("span", class_="menukad").text.strip()
+        menukad = cell.find("span", class_="menukad").text.strip()
+        try:
+            chaser = cell.find("span", class_="chaser").text.strip()
+        except AttributeError:
+            chaser = ""
         transcription = cell.find("div", class_="transcription").get_text(
             strip=True,
         )
-        results.append(f"{label.ljust(9)}*{word}* {{{transcription}}}")
+        results.append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return results
 
 
@@ -155,10 +167,14 @@ def get_pretext_text(soup: str) -> list:
             forms = cell.find_all("div", recursive=False)
             for form in forms:
                 menukad = form.find("span", class_="menukad").text.strip()
+                try:
+                    chaser = form.find("span", class_="chaser").text.strip()
+                except AttributeError:
+                    chaser = ""
                 transcription = form.find("div", class_="transcription").get_text(
                     strip=True
                 )
-                result.append(f"{label.ljust(9)}*{menukad}* {{{transcription}}}")
+                result.append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return result
 
 
