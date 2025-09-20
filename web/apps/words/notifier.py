@@ -27,7 +27,7 @@ def build_inline_keyboard(data: list) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=in_list)
 
 
-async def send_message(telegram_id: int, data: dict) -> str:
+async def send_message(telegram_id: int, data: dict):
     async with AiohttpSession() as async_session:
         notify_bot = Bot(
             token=BOT_TOKEN,
@@ -51,7 +51,7 @@ async def send_message(telegram_id: int, data: dict) -> str:
     return message
 
 
-async def edit_message(telegram_id: int, data: dict) -> str:
+async def edit_message(telegram_id: int, data: dict):
     async with AiohttpSession() as async_session:
         notify_bot = Bot(
             token=BOT_TOKEN,

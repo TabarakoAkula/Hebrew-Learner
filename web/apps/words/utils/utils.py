@@ -116,7 +116,7 @@ def pretext_create_words_form_message(data: dict) -> dict:
     return {"text": text.strip()}
 
 
-def get_many_results_message(data: dict) -> dict:
+def get_many_results_message(data: list[dict]) -> dict:
     text = "*Найдено несколько результатов:*\n\n"
     buttons_data = []
     for word in data:

@@ -9,10 +9,11 @@ class GetWordView(APIView):
     def get(request):
         try:
             word = request.GET["word"]
-            message_id = request.GET.get("message_id")
+            message_id = request.GET.get("message_id", None)
             telegram_id = request.GET["telegram_id"]
             imperative = request.GET.get("imperative") == "True"
             passive = request.GET.get("passive") == "True"
+            collection_search = request.GET.get("collection_search") == "True"
         except KeyError:
             return Response(
                 {
@@ -24,7 +25,7 @@ class GetWordView(APIView):
         serializer = WordSerializer(word_obj)
         data = serializer.data
         data["new"] = new
-        if new or not word_obj.analyzed or word_obj.multiply:
+        if new or not word_obj.analyzed or word_obj.multiply and not collection_search:
             manager_analyze_word(
                 {
                     "word": word,
@@ -33,6 +34,7 @@ class GetWordView(APIView):
                     "new": new,
                     "imperative": imperative,
                     "passive": passive,
+                    "collection_search": collection_search,
                 }
             )
         if word_obj.multiply:
@@ -49,6 +51,7 @@ class GetWordByLinkView(APIView):
             telegram_id = request.GET["telegram_id"]
             imperative = request.GET.get("imperative") == "True"
             passive = request.GET.get("passive") == "True"
+            collection_search = request.GET.get("collection_search") == "True"
         except KeyError:
             return Response(
                 {
@@ -65,6 +68,7 @@ class GetWordByLinkView(APIView):
                 "new": False,
                 "imperative": imperative,
                 "passive": passive,
+                "collection_search": collection_search,
             },
         )
         return Response({"success": True, "data": {}})

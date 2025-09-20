@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 class CollectionSerializer(serializers.ModelSerializer):
     words = serializers.SerializerMethodField()
+    owner = serializers.SerializerMethodField()
 
     class Meta:
         model = Collection
@@ -19,10 +20,11 @@ class CollectionSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_words(obj):
-        return [
-            {"word": word.hebrew_word, "translation": word.data.get("translation", "")}
-            for word in obj.words.all()
-        ]
+        return obj.data.get("words", {})
+
+    @staticmethod
+    def get_owner(obj):
+        return obj.owner.telegram_id
 
 
 class CollectionListSerializer(serializers.ModelSerializer):

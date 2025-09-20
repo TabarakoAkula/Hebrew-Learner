@@ -48,10 +48,10 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 88
+line-length = 90
 
 [tool.flake8]
-max-line-length = 88
+max-line-length = 90
 indent-size = 4
 exclude = "migrations"
 inline-quotes = '"'

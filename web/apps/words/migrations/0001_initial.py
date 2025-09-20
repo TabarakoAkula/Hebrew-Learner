@@ -28,9 +28,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "russian_name",
-                    models.CharField(
-                        max_length=120, verbose_name="название на русском"
-                    ),
+                    models.CharField(max_length=120, verbose_name="название на русском"),
                 ),
             ],
         ),

@@ -12,3 +12,27 @@ class SendReportStatesGroup(StatesGroup):
 
 class AnswerReportStatesGroup(StatesGroup):
     input = State()
+
+
+class CollectionsSearchIdStatesGroup(StatesGroup):
+    input = State()
+
+
+class CollectionsAddWordStatesGroup(StatesGroup):
+    input = State()
+
+
+class CollectionsAddExistingTranslationWordStatesGroup(StatesGroup):
+    input = State()
+
+
+class CollectionsAddMultipleTranslationWordStatesGroup(StatesGroup):
+    input = State()
+
+
+class CollectionsRemoveWordStatesGroup(StatesGroup):
+    input = State()
+
+
+class CollectionsEditStatesGroup(StatesGroup):
+    menu = State()

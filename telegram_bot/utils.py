@@ -27,6 +27,10 @@ def check_hebrew_letters(word: str) -> bool:
     return bool(re.match(r"^[\u0590-\u05FF]+$", word))
 
 
+def remove_nekudots(text: str) -> str:
+    return re.sub(r"[\u0591-\u05C7]", "", text).strip()
+
+
 def check_success(function_name):
     def decorator(func):
         async def wrapper(*args, **kwargs):
@@ -102,7 +106,7 @@ async def answer_report(data: dict) -> None:
 
 
 @check_success("get_or_add_word")
-async def get_or_add_word(data: dict) -> None:
+async def get_or_add_word(data: dict) -> dict:
     response = await asyncio.to_thread(
         requests.get,
         url=DOCKER_URL + "storage/words",
@@ -113,12 +117,44 @@ async def get_or_add_word(data: dict) -> None:
 
 
 @check_success("get_by_link")
-async def get_by_link(data: dict) -> None:
+async def get_by_link(data: dict):
     response = await asyncio.to_thread(
         requests.get,
         url=DOCKER_URL + "storage/words/by-link",
         headers={"x-api-key": API_KEY},
         params=data,
+    )
+    return response.json()
+
+
+@check_success("collections_search_by_id")
+async def collections_search_by_id(data: dict):
+    response = await asyncio.to_thread(
+        requests.get,
+        url=DOCKER_URL + f"collections/{data['collection_id']}",
+        headers={"x-api-key": API_KEY},
+    )
+    return response.json()
+
+
+@check_success("collections_remove_word")
+async def collections_remove_word(data: dict):
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"collections/{data['collection_id']}/remove_word",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
+@check_success("collections_add_word")
+async def collections_add_word(data: dict):
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"collections/{data['collection_id']}/add_word",
+        headers={"x-api-key": API_KEY},
+        json=data,
     )
     return response.json()
 

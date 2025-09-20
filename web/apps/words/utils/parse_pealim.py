@@ -129,9 +129,7 @@ def get_noun_text(soup: str) -> dict:
                 .get_text(strip=True)
                 .replace("-", "")
             )
-            result.append(
-                f"{labels[i].ljust(9)}*{menukad} {chaser}* {{{transcription}}}"
-            )
+            result.append(f"{labels[i].ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return result
 
 
@@ -178,13 +176,13 @@ def get_pretext_text(soup: str) -> list:
                 transcription = form.find("div", class_="transcription").get_text(
                     strip=True
                 )
-                result.append(
-                    f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}"
-                )
+                result.append(f"{label.ljust(9)}*{menukad} {chaser}* {{{transcription}}}")
     return result
 
 
 def get_word(link: str) -> dict:
+    if not link.endswith("/"):
+        link += "/"
     output = {
         "forms": {},
         "sqrt": "",
@@ -200,9 +198,7 @@ def get_word(link: str) -> dict:
         infinitive = soup.find("div", id="INF-L")
         output["infinitive"] = {
             "menukad": infinitive.find("span", class_="menukad").text.strip(),
-            "transcription": infinitive.find(
-                "div", class_="transcription"
-            ).text.strip(),
+            "transcription": infinitive.find("div", class_="transcription").text.strip(),
         }
         output["type"] = "verb"
         if len(tables) == 1:
@@ -257,10 +253,7 @@ def get_word(link: str) -> dict:
         except AttributeError:
             output["sqrt"] = ""
 
-    if (
-        output["type"] in ["adv", "union", "pretext", "pronoun", "interjection"]
-        and lead
-    ):
+    if output["type"] in ["adv", "union", "pretext", "pronoun", "interjection"] and lead:
         output["transcription"] = (
             lead.find("div", "transcription").text.replace("-", "").strip()
         )

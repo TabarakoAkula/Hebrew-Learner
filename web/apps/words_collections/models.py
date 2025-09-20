@@ -1,5 +1,4 @@
 from apps.users.models import User
-from apps.words.models import Word
 from django.db import models
 
 
@@ -15,11 +14,7 @@ class Collection(models.Model):
         related_name="collections",
         verbose_name="владелец",
     )
-    words = models.ManyToManyField(
-        Word,
-        related_name="collections",
-        verbose_name="слова",
-    )
+    data = models.JSONField(default=dict, verbose_name="данные")
     users = models.ManyToManyField(
         User,
         related_name="saved_collections",

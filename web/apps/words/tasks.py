@@ -20,6 +20,69 @@ DEFAULT_BUTTONS = [
 ]
 
 
+def get_collection_buttons(
+    id: str, existing_button: bool = True
+) -> list[list[dict[str, str]]]:
+    keyboard = [
+        [
+            {
+                "title": "🖊️ Свой перевод",
+                "callback": (
+                    f"coll_existing_custom_translation_{id}"
+                    if existing_button
+                    else f"coll_new_custom_translation_{id}"
+                ),
+            },
+        ],
+        [
+            {
+                "title": "🔙 В меню",
+                "callback": "back_to_menu",
+            },
+        ],
+    ]
+    if existing_button:
+        keyboard[0].insert(
+            0,
+            {
+                "title": "➕ Добавить",
+                "callback": f"coll_add_existing_{id}",
+            },
+        )
+    return keyboard
+
+
+def get_collection_multiple_buttons(words: list) -> list[list[dict[str, str]]]:
+    keyboard = []
+    for word in words:
+        keyboard.append(
+            [
+                {
+                    "title": word.get("label", ""),
+                    "callback": "coll_add_new_multiple_" + word.get("link", ""),
+                }
+            ]
+        )
+
+    keyboard.append(
+        [
+            {
+                "title": "🖊️ Свой перевод",
+                "callback": "coll_multiple_custom_translation",
+            },
+        ]
+    )
+    keyboard.append(
+        [
+            {
+                "title": "🔙 В меню",
+                "callback": "back_to_menu",
+            },
+        ]
+    )
+    return keyboard
+
+
 def get_imperative_button(word: str) -> dict:
     return {
         "title": "➕ Повелительное наклонение",
@@ -42,9 +105,12 @@ def manager_analyze_word(data: dict) -> None:
 
 @shared_task()
 def celery_analyze_word(data: dict, link="") -> None:
+    was_found = True
     message_text = "💫 Загрузка схемы"
     if data["new"]:
         message_text = "🎉 Это слово введено в первый раз\n\n" + message_text
+    if data.get("collection_search"):
+        message_text = "🔃 Загрузка слова"
     if not data.get("message_id"):
         message = manager_send_message(
             {
@@ -113,7 +179,63 @@ def celery_analyze_word(data: dict, link="") -> None:
                 [{"title": i["label"], "callback": "get_by_link_" + i["link"]}]
             )
     elif not word_links:
-        answer_text = {"text": "Не удалось ничего найти"}
+        was_found = False
+        answer_text = {
+            "text": "Не удалось ничего найти"
+        }  # TODO добавить в поиск для коллекции этот вариант
+    if word:
+        if not word.multiply and data.get("collection_search") and was_found:
+            answer_text["text"] = (
+                f"Слово **{word.data.get('base_form')}** - {word.data.get('translation')}"
+            )
+            return asyncio.run(
+                edit_message(
+                    data["telegram_id"],
+                    {
+                        "message": utils.normalize_text(answer_text["text"]),
+                        "message_id": (
+                            data["message_id"]
+                            if data.get("message_id")
+                            else message.message_id
+                        ),
+                        "inline_reply_markup": get_collection_buttons(str(word.id)),
+                    },
+                ),
+            )
+        elif data.get("collection_search") and was_found:
+            return asyncio.run(
+                edit_message(
+                    data["telegram_id"],
+                    {
+                        "message": utils.normalize_text(answer_text["text"]),
+                        "message_id": (
+                            data["message_id"]
+                            if data.get("message_id")
+                            else message.message_id
+                        ),
+                        "inline_reply_markup": get_collection_multiple_buttons(
+                            answer_text["buttons"]
+                        ),
+                    },
+                ),
+            )
+        elif not was_found:
+            return asyncio.run(
+                edit_message(
+                    data["telegram_id"],
+                    {
+                        "message": f"Слово {data['word']} не найдено в системе",
+                        "message_id": (
+                            data["message_id"]
+                            if data.get("message_id")
+                            else message.message_id
+                        ),
+                        "inline_reply_markup": get_collection_buttons(
+                            str(word.id), False
+                        ),
+                    },
+                ),
+            )
     return asyncio.run(
         edit_message(
             data["telegram_id"],

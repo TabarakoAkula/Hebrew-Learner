@@ -12,6 +12,8 @@ TYPES_DICT: str = {
     "interjection": "междометие",
 }
 
+PEALIM_LINK = "https://www.pealim.com"
+
 
 def normalize_text(text: str) -> str:
     characters = ["-", "{", "}", ".", "(", ")", "~", ">", "<", "|", "!", "?"]
@@ -114,17 +116,21 @@ def pretext_create_words_form_message(data: dict) -> dict:
     return {"text": text.strip()}
 
 
-def get_many_results_message(data: dict) -> dict:
+def get_many_results_message(data: list[dict]) -> dict:
     text = "*Найдено несколько результатов:*\n\n"
-    buttons_data = []
+    words_data = []
     for word in data:
-        buttons_data.append(
+        words_data.append(
             {
-                "link": word.get("link").strip("/").split("/")[-1].replace("-", "_"),
+                "word": word.get("word"),
+                "base_form": word.get("label"),
+                "translation": word.get("translation"),
+                "link": PEALIM_LINK + word.get("link"),
                 "label": word.get("type").capitalize() + " | " + word.get("label"),
+                "id": word.get("link").strip("/").split("/")[-1].replace("-", "_"),
             }
         )
         type_text = word.get("type").capitalize()
         label_text = word.get("label")
         text += f"{type_text} *{label_text}* - _{word.get('translation')}_\n\n"
-    return {"text": text.strip(), "buttons": buttons_data}
+    return {"text": text.strip(), "data": words_data}
