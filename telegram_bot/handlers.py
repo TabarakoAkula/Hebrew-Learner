@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+import random
 
 from aiogram import F, html, Router
 from aiogram.filters import Command, StateFilter
@@ -756,7 +757,8 @@ async def create_collection_menu_input_handler(message: Message, state: FSMConte
 
     if response.get("success", False):
         await message.answer(
-            text=f"Коллекция {html.bold(message.text)} успешно создана",
+            text=f"Коллекция {html.bold(message.text)} успешно создана. "
+            f"ID: {response.get('data').get('id')}",
             reply_markup=keyboards.new_created_collection_menu(
                 str(response.get("data", {}).get("id", "0"))
             ),
@@ -775,3 +777,205 @@ async def open_collection_by_id_handler(callback: CallbackQuery, state: FSMConte
         state,
         collection_id=callback.data.split("_")[-1],
     )
+
+
+@router.callback_query(F.data.startswith("collections_training_"))
+async def collections_training_menu_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+    first_launch=True,
+):
+    if first_launch:
+        await state.update_data({"training_mode_translation": False})
+        await state.update_data({"training_mode_nekudot": True})
+    data = await state.get_data()
+    if callback.data.split("_")[-1] != str(data.get("id")) and first_launch:
+        return
+    display_mode = data.get("training_mode_translation")
+    nekudot_mode = data.get("training_mode_nekudot")
+    await callback.message.edit_text(
+        text=f"Выбери настройки:\n\nРежим отображения: "
+        f"{'Слово' if display_mode else 'Перевод'}\n"
+        f"Отображать некудот: {'Да' if nekudot_mode else 'Нет'}",
+        reply_markup=keyboards.collection_training_settings_menu(
+            data.get("id", "0"),
+            display_mode,
+            nekudot_mode,
+        ),
+    )
+
+
+@router.callback_query(F.data == "collection_training_change_display_mode")
+async def collections_training_change_display_mode_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    await state.update_data(
+        {
+            "training_mode_translation": not data.get("training_mode_translation"),
+        }
+    )
+    return await collections_training_menu_handler(callback, state, first_launch=False)
+
+
+@router.callback_query(F.data == "collection_training_change_nekudot_mode")
+async def collections_training_change_nekudot_mode_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    await state.update_data(
+        {
+            "training_mode_nekudot": not data.get("training_mode_nekudot"),
+        }
+    )
+    return await collections_training_menu_handler(callback, state, first_launch=False)
+
+
+@router.callback_query(F.data == "collection_training_start")
+async def collections_training_start_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    collection_words_dict = data.get("words", {})
+    collection_words_list = [
+        collection_words_dict[word] for word in collection_words_dict.keys()
+    ]
+    n_options = 3
+
+    questions = []
+    for item in collection_words_list:
+        correct_word = item["word"]
+        other_words = [w for w in collection_words_list if w != item]
+        sampled = random.sample(other_words, min(n_options - 1, len(other_words)))
+        options = sampled + [item]
+        random.shuffle(options)
+
+        options_dict = {i + 1: opt for i, opt in enumerate(options)}
+        correct_index = [k for k, v in options_dict.items() if v["word"] == correct_word]
+        correct_index = correct_index[0]
+        questions.append(
+            {
+                "options": options_dict,
+                "correct_answer": correct_index,
+            }
+        )
+
+    await state.update_data(
+        {
+            "training_questions": questions,
+            "training_question_number": 0,
+        }
+    )
+    await collections_training_question_handler(callback, state)
+
+
+async def collections_training_question_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    questions = data.get("training_questions", [])
+    question_now_number = data.get("training_question_number")
+    if len(questions) == 0 or len(questions) == question_now_number:
+        return await callback.message.edit_text(
+            text="Тренировка завершена !!!",
+            reply_markup=keyboards.collections_data_words(data.get("id"), False),
+        )
+    print(len(questions), question_now_number)
+    question_now = questions[question_now_number]
+    display_mode = data.get("training_mode_translation")
+    nekudot_mode = data.get("training_mode_nekudot")
+    correct_word_data = question_now["options"].get(str(question_now["correct_answer"]))
+    word_to_display = correct_word_data.get("translation")
+    if display_mode:
+        if nekudot_mode:
+            word_to_display = correct_word_data.get("base_form")
+        else:
+            word_to_display = correct_word_data.get("word")
+    question_text = f"Выбери правильный перевод: {word_to_display}"
+    await state.update_data({"training_question_text": question_text})
+    await state.set_state(states.TrainingStatesGroup.input)
+    await callback.message.edit_text(
+        text=question_text,
+        reply_markup=keyboards.create_training_options(
+            question_now,
+            display_mode,
+            nekudot_mode,
+            data.get("id", "0"),
+        ),
+    )
+    return None
+
+
+@router.callback_query(
+    F.data.startswith("training_choose_"),
+    states.TrainingStatesGroup.input,
+)
+async def collections_training_question_input_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    questions = data.get("training_questions", [])
+    display_mode = data.get("training_mode_translation")
+    nekudot_mode = data.get("training_mode_nekudot")
+    question_now_number = data.get("training_question_number")
+    question_now = questions[question_now_number]
+    correct_answer_number = str(question_now["correct_answer"])
+    correct_answer_data = question_now["options"][correct_answer_number]
+    user_answer_number = callback.data.split("_")[-1]
+    user_answer_data = question_now["options"][user_answer_number]
+    question_text = data.get("training_question_text")
+
+    result_text = (
+        f"{'✅ Верно' if user_answer_number == correct_answer_number else '❌ Не верно'}"
+        f"\n{question_text}\n"
+        f"{correct_answer_data['base_form']} - {correct_answer_data['translation']}"
+    )
+
+    if correct_answer_number != user_answer_number:
+        if display_mode:
+            part_one = user_answer_data["translation"]
+            part_two = correct_answer_data["translation"]
+        else:
+            if nekudot_mode:
+                part_one = user_answer_data["base_form"]
+                part_two = correct_answer_data["base_form"]
+            else:
+                part_one = user_answer_data["word"]
+                part_two = correct_answer_data["word"]
+        result_text += f"\n\nТы ответил: {part_one}\nПравильный ответ: {part_two}"
+
+    result_text += "\n\nНажми на любую кнопку для перехода к следующему вопросу"
+    await state.set_state(states.TrainingStatesGroup.answers)
+    await callback.message.edit_text(
+        text=result_text,
+        reply_markup=keyboards.create_training_options(
+            question_now,
+            display_mode,
+            nekudot_mode,
+            data.get("id", "0"),
+            True,
+        ),
+    )
+
+
+@router.callback_query(
+    F.data.startswith("training_choose_"),
+    states.TrainingStatesGroup.answers,
+)
+async def collections_training_next_question_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    await state.update_data(
+        {
+            "training_question_number": data.get("training_question_number") + 1,
+            "training_question_text": "",
+        }
+    )
+    await collections_training_question_handler(callback, state)

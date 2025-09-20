@@ -297,3 +297,83 @@ def new_created_collection_menu(collection_id: str) -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+
+def collection_training_settings_menu(
+    collection_id: str,
+    display_mode: bool,
+    nekudot_mode: bool,
+) -> InlineKeyboardMarkup:
+    display_mode_text = "Отображать перевод" if display_mode else "Отображать слово"
+    nekudot_mode_text = "Не отображать некудот" if nekudot_mode else "Отображать некудот"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🚀 Начать",
+                    callback_data="collection_training_start",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔄 " + display_mode_text,
+                    callback_data="collection_training_change_display_mode",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔄 " + nekudot_mode_text,
+                    callback_data="collection_training_change_nekudot_mode",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                )
+            ],
+        ]
+    )
+
+
+def create_training_options(
+    question_now: dict,
+    display_mode: bool,
+    nekudot_mode: bool,
+    collection_id: str,
+    answers: bool = False,
+) -> InlineKeyboardMarkup:
+    keyboard = []
+    options = question_now["options"]
+    for option in options.keys():
+        option_is_correct = str(question_now["correct_answer"]) == option
+        if display_mode:
+            option_text = options[option]["translation"].capitalize()
+        else:
+            if nekudot_mode:
+                option_text = options[option]["base_form"].capitalize()
+            else:
+                option_text = options[option]["word"].capitalize()
+
+        if answers:
+            if option_is_correct:
+                option_text = "✅ " + option_text
+            else:
+                option_text = "❌ " + option_text
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=option_text,
+                    callback_data=f"training_choose_{option}",
+                ),
+            ]
+        )
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="🔙 Назад",
+                callback_data=f"back_to_collections_data_{collection_id}",
+            )
+        ]
+    )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)

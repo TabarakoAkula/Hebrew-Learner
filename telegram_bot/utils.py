@@ -24,7 +24,7 @@ DEFAULT_BUTTONS = [
 
 
 def check_hebrew_letters(word: str) -> bool:
-    return bool(re.match(r"^[\u0590-\u05FF]+$", word))
+    return bool(re.match(r"^[\u0590-\u05FF\s-]+$", word))
 
 
 def remove_nekudots(text: str) -> str:

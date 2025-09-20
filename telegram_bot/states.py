@@ -40,3 +40,8 @@ class CollectionsEditStatesGroup(StatesGroup):
 
 class CreateCollectionStatesGroup(StatesGroup):
     input = State()
+
+
+class TrainingStatesGroup(StatesGroup):
+    input = State()
+    answers = State()
