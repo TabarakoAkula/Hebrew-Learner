@@ -1,3 +1,4 @@
+from apps.users.models import User
 from apps.words.models import Word
 from apps.words_collections.models import Collection
 from apps.words_collections.serializers import (
@@ -18,6 +19,35 @@ class CollectionListCreateView(generics.ListCreateAPIView):
         if self.request.method == "GET":
             return CollectionListSerializer
         return CollectionSerializer
+
+    def create(self, request, *args, **kwargs):
+        telegram_id = request.data.get("telegram_id")
+        if not telegram_id:
+            return Response(
+                {
+                    "success": False,
+                    "message": "telegram_id обязателен для создания коллекции",
+                },
+            )
+        try:
+            user = User.objects.get(telegram_id=telegram_id)
+        except User.DoesNotExist:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Пользователь с данным telegram_id не найден",
+                },
+            )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(owner=user)
+        return Response(
+            {
+                "success": True,
+                "message": "Коллекция успешно создана",
+                "data": serializer.data,
+            },
+        )
 
 
 class CollectionDetailView(generics.RetrieveUpdateDestroyAPIView):

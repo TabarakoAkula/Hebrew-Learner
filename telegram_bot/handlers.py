@@ -44,6 +44,7 @@ async def back_to_menu(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "search_menu")
 async def search_menu_hanlder(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await state.set_state(states.SearchStatesGroup.menu)
     await callback.message.edit_text(
         "Введи слово для поиска:",
@@ -193,6 +194,7 @@ async def input_answer_report_handler(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "collections_menu")
 async def collections_menu_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await callback.message.edit_text(
         "Меню коллекций", reply_markup=keyboards.collections_menu()
     )
@@ -221,13 +223,21 @@ async def collections_search_id_menu_handler(callback: CallbackQuery, state: FSM
 
 
 @router.message(states.CollectionsSearchIdStatesGroup.input)
-async def collections_search_id_input_handler(message: Message, state: FSMContext):
+async def collections_search_id_input_handler(
+    message: Message,
+    state: FSMContext,
+    collection_id: str = None,
+):
     new_message = False
     response = await state.get_data()
     if not response:
         new_message = True
         await state.clear()
-        response = await utils.collections_search_by_id({"collection_id": message.text})
+        response = await utils.collections_search_by_id(
+            {
+                "collection_id": collection_id if collection_id else message.text,
+            }
+        )
     if response.get("id", None):
         is_owner = response.get("owner", "0") == str(message.chat.id)
         await state.update_data(response)
@@ -242,7 +252,7 @@ async def collections_search_id_input_handler(message: Message, state: FSMContex
             f"Последнее обновление: {html.bold(updated_at.strftime('%d.%m.%Y %H:%M'))}\n"
             f"Количество слов: {html.bold(number_of_words)}"
         )
-        if new_message:
+        if new_message and not collection_id:
             await message.answer(
                 text=text,
                 reply_markup=keyboards.collections_data_menu(
@@ -722,3 +732,46 @@ async def collections_add_translation_new_multiple_word_handler(
             f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
             reply_markup=keyboards.back_collections_edit_menu(collection_id),
         )
+
+
+@router.callback_query(F.data == "collections_add_menu")
+async def create_collection_menu_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await state.set_state(states.CreateCollectionStatesGroup.input)
+    await callback.message.edit_text(
+        text="Введи название для новой коллекции",
+        reply_markup=keyboards.create_collection_menu(),
+    )
+
+
+@router.message(states.CreateCollectionStatesGroup.input)
+async def create_collection_menu_input_handler(message: Message, state: FSMContext):
+    response = await utils.create_collection(
+        {
+            "telegram_id": message.chat.id,
+            "name": message.text,
+        }
+    )
+    await state.clear()
+
+    if response.get("success", False):
+        await message.answer(
+            text=f"Коллекция {html.bold(message.text)} успешно создана",
+            reply_markup=keyboards.new_created_collection_menu(
+                str(response.get("data", {}).get("id", "0"))
+            ),
+        )
+    else:
+        await message.answer(
+            text=response.get("message"),
+            reply_markup=keyboards.create_collection_menu(),
+        )
+
+
+@router.callback_query(F.data.startswith("open_collection_by_id_"))
+async def open_collection_by_id_handler(callback: CallbackQuery, state: FSMContext):
+    return await collections_search_id_input_handler(
+        callback.message,
+        state,
+        collection_id=callback.data.split("_")[-1],
+    )

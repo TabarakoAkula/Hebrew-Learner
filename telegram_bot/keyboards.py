@@ -265,3 +265,35 @@ def collections_add_multiple_words(
         ]
     )
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def create_collection_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data="collections_menu",
+                )
+            ]
+        ]
+    )
+
+
+def new_created_collection_menu(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📂 Открыть коллекцию",
+                    callback_data=f"open_collection_by_id_{collection_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data="collections_menu",
+                )
+            ],
+        ]
+    )

@@ -36,3 +36,7 @@ class CollectionsRemoveWordStatesGroup(StatesGroup):
 
 class CollectionsEditStatesGroup(StatesGroup):
     menu = State()
+
+
+class CreateCollectionStatesGroup(StatesGroup):
+    input = State()

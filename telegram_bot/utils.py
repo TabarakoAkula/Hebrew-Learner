@@ -159,6 +159,17 @@ async def collections_add_word(data: dict):
     return response.json()
 
 
+@check_success("create_collection")
+async def create_collection(data: dict) -> dict:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + "collections/",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
 async def get_word_formatting(
     data: dict, imperative: bool = False, passive: bool = False
 ) -> dict:
