@@ -342,11 +342,11 @@ def create_training_options(
     nekudot_mode: bool,
     collection_id: str,
     answers: bool = False,
+    user_answer_number: str = 0,
 ) -> InlineKeyboardMarkup:
     keyboard = []
     options = question_now["options"]
     for option in options.keys():
-        option_is_correct = str(question_now["correct_answer"]) == option
         if display_mode:
             option_text = options[option]["translation"].capitalize()
         else:
@@ -356,9 +356,9 @@ def create_training_options(
                 option_text = options[option]["word"].capitalize()
 
         if answers:
-            if option_is_correct:
+            if str(question_now["correct_answer"]) == option:
                 option_text = "✅ " + option_text
-            else:
+            elif user_answer_number == option:
                 option_text = "❌ " + option_text
         keyboard.append(
             [

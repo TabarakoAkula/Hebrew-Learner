@@ -867,6 +867,7 @@ async def collections_training_start_handler(
         {
             "training_questions": questions,
             "training_question_number": 0,
+            "training_correct_answers": 0,
         }
     )
     await collections_training_question_handler(callback, state)
@@ -879,12 +880,12 @@ async def collections_training_question_handler(
     data = await state.get_data()
     questions = data.get("training_questions", [])
     question_now_number = data.get("training_question_number")
+    correct_answers = data.get("training_correct_answers")
     if len(questions) == 0 or len(questions) == question_now_number:
         return await callback.message.edit_text(
             text="Тренировка завершена !!!",
             reply_markup=keyboards.collections_data_words(data.get("id"), False),
         )
-    print(len(questions), question_now_number)
     question_now = questions[question_now_number]
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
@@ -895,8 +896,18 @@ async def collections_training_question_handler(
             word_to_display = correct_word_data.get("base_form")
         else:
             word_to_display = correct_word_data.get("word")
-    question_text = f"Выбери правильный перевод: {word_to_display}"
+
+    correct_percentage = 1
+    if question_now_number != 0:
+        correct_percentage = correct_answers / question_now_number
+    question_text = f"Выбери правильный перевод: {html.bold(word_to_display)}"
     await state.update_data({"training_question_text": question_text})
+
+    stats_string = (
+        f"{question_now_number + 1}/{len(questions)} "
+        f"{round(correct_percentage, 1) * 100}%\n\n"
+    )
+    question_text = html.italic(stats_string) + question_text
     await state.set_state(states.TrainingStatesGroup.input)
     await callback.message.edit_text(
         text=question_text,
@@ -925,31 +936,53 @@ async def collections_training_question_input_handler(
     question_now_number = data.get("training_question_number")
     question_now = questions[question_now_number]
     correct_answer_number = str(question_now["correct_answer"])
-    correct_answer_data = question_now["options"][correct_answer_number]
     user_answer_number = callback.data.split("_")[-1]
     user_answer_data = question_now["options"][user_answer_number]
     question_text = data.get("training_question_text")
+    correct_answers = data.get("training_correct_answers")
 
-    result_text = (
-        f"{'✅ Верно' if user_answer_number == correct_answer_number else '❌ Не верно'}"
-        f"\n{question_text}\n"
-        f"{correct_answer_data['base_form']} - {correct_answer_data['translation']}"
+    question_now_number += 1
+    if correct_answer_number == user_answer_number:
+        correct_answers += 1
+
+    correct_percentage = 1
+    if question_now_number != 0:
+        correct_percentage = correct_answers / question_now_number
+
+    stats_string = (
+        f"{question_now_number}/{len(questions)} "
+        f"{round(correct_percentage, 1) * 100}%\n\n"
     )
+    result_text = html.italic(stats_string) + question_text
 
     if correct_answer_number != user_answer_number:
         if display_mode:
-            part_one = user_answer_data["translation"]
-            part_two = correct_answer_data["translation"]
+            part_one = (
+                html.bold(user_answer_data["base_form"])
+                + " - "
+                + html.italic(user_answer_data["translation"])
+            )
+
         else:
             if nekudot_mode:
-                part_one = user_answer_data["base_form"]
-                part_two = correct_answer_data["base_form"]
+                part_one = (
+                    html.bold(user_answer_data["base_form"])
+                    + " - "
+                    + html.italic(user_answer_data["translation"])
+                )
             else:
-                part_one = user_answer_data["word"]
-                part_two = correct_answer_data["word"]
-        result_text += f"\n\nТы ответил: {part_one}\nПравильный ответ: {part_two}"
+                part_one = (
+                    html.bold(user_answer_data["word"])
+                    + " - "
+                    + html.italic(user_answer_data["translation"])
+                )
+        result_text += f"\n\nТы ответил: {part_one}"
+    else:
+        await state.update_data({"training_correct_answers": correct_answers})
 
-    result_text += "\n\nНажми на любую кнопку для перехода к следующему вопросу"
+    result_text += html.italic(
+        "\n\nНажми на любую кнопку для перехода к следующему вопросу"
+    )
     await state.set_state(states.TrainingStatesGroup.answers)
     await callback.message.edit_text(
         text=result_text,
@@ -959,6 +992,7 @@ async def collections_training_question_input_handler(
             nekudot_mode,
             data.get("id", "0"),
             True,
+            user_answer_number,
         ),
     )
 
