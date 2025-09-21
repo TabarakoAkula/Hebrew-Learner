@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta, timezone
+import os
 import random
 
 from aiogram import F, html, Router
+import aiogram.exceptions
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -16,6 +18,7 @@ dotenv.load_dotenv()
 router = Router()
 
 SEARCH_FILTER = StateFilter(*states.SearchStatesGroup.__all_states__)
+BOT_USERNAME = os.getenv("BOT_USERNAME", "")
 
 
 @router.message(Command("start"))
@@ -27,6 +30,14 @@ async def start_handler(message: Message, state: FSMContext):
     )
     if not response["success"]:
         return await message.answer(response["message"])
+    argument = message.text.split()[-1]
+    if argument.startswith("collection_"):
+        collection_id = argument.split("_")[-1]
+        return await collections_search_id_input_handler(
+            message,
+            state,
+            collection_id=collection_id,
+        )
     answer_message = "Привет, в этом боте ты можешь искать перевод слов с иврита"
     if response["data"]["New"]:
         answer_message = "Поздравляю с первым запуском🥳\n\n" + answer_message
@@ -257,12 +268,20 @@ async def collections_search_id_input_handler(
                 ),
             )
         else:
-            await message.edit_text(
-                text=text,
-                reply_markup=keyboards.collections_data_menu(
-                    response.get("id", "0"), is_owner
-                ),
-            )
+            try:
+                await message.edit_text(
+                    text=text,
+                    reply_markup=keyboards.collections_data_menu(
+                        response.get("id", "0"), is_owner
+                    ),
+                )
+            except aiogram.exceptions.TelegramBadRequest:
+                await message.answer(
+                    text=text,
+                    reply_markup=keyboards.collections_data_menu(
+                        response.get("id", "0"), is_owner
+                    ),
+                )
     else:
         await message.answer(
             "Коллекция с таким ID не найдена",
@@ -1055,3 +1074,14 @@ async def my_collections_menu_handler(callback: CallbackQuery, state: FSMContext
             text=f"Ошибка при получении списка сохраненных коллекций: "
             f"{response.get('message')}",
         )
+
+
+@router.callback_query(F.data.startswith("collections_share_"))
+async def share_collections_handler(callback: CallbackQuery, state: FSMContext):
+    collection_id = callback.data.split("_")[-1]
+    share_link = f"t.me/{BOT_USERNAME}?start=collection_{collection_id}"
+    share_text = "Поделись этой ссылкой, чтобы открыть коллекцию на другом устройстве:"
+    await callback.message.answer(
+        text=f"{html.italic(share_text)}\n\n{share_link}",
+        reply_markup=keyboards.share_keyboard(share_link),
+    )

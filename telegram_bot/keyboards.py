@@ -122,6 +122,10 @@ def collections_data_menu(collection_id: str, is_owner: bool) -> InlineKeyboardM
                 text="🧠 Тренировка",
                 callback_data=f"collections_training_{collection_id}",
             ),
+            InlineKeyboardButton(
+                text="📨 Поделиться",
+                callback_data=f"collections_share_{collection_id}",
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -401,3 +405,22 @@ def my_collections_menu(data: list) -> InlineKeyboardMarkup:
         ]
     )
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def share_keyboard(share_link: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Поделиться в Telegram",
+                    url=f"https://t.me/share/url?url={share_link}",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="Поделиться в WhatsApp",
+                    url=f"https://wa.me/?text={share_link}",
+                ),
+            ],
+        ],
+    )
