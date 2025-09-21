@@ -30,11 +30,7 @@ async def start_handler(message: Message, state: FSMContext):
     answer_message = "Привет, в этом боте ты можешь искать перевод слов с иврита"
     if response["data"]["New"]:
         answer_message = "Поздравляю с первым запуском🥳\n\n" + answer_message
-
-    if response["data"]["moderator"]:
-        await message.answer("⚠️ У вас есть права модератора")
-
-    await message.answer(answer_message, reply_markup=keyboards.main_menu())
+    return await message.answer(answer_message, reply_markup=keyboards.main_menu())
 
 
 @router.callback_query(F.data == "back_to_menu")
@@ -1013,3 +1009,49 @@ async def collections_training_next_question_handler(
         }
     )
     await collections_training_question_handler(callback, state)
+
+
+@router.callback_query(F.data == "collections_saved_menu")
+async def saved_collections_menu_handler(callback: CallbackQuery, state: FSMContext):
+    response = await utils.get_or_create_user(
+        callback.message.chat.id,
+        {"telegram_id": callback.message.chat.id},
+    )
+    if response.get("success", False):
+        response_data = response.get("data", {})
+        collections_list = response_data.get("collections_saved", [])
+        answer_text = "Список сохраненных коллекций:"
+        if len(collections_list) == 0:
+            answer_text = "Ты пока не сохранил ни одной коллекции"
+        await callback.message.edit_text(
+            text=answer_text,
+            reply_markup=keyboards.my_collections_menu(collections_list),
+        )
+    else:
+        await callback.message.answer(
+            text=f"Ошибка при получении списка сохраненных коллекций: "
+            f"{response.get('message')}",
+        )
+
+
+@router.callback_query(F.data == "collections_my_menu")
+async def my_collections_menu_handler(callback: CallbackQuery, state: FSMContext):
+    response = await utils.get_or_create_user(
+        callback.message.chat.id,
+        {"telegram_id": callback.message.chat.id},
+    )
+    if response.get("success", False):
+        response_data = response.get("data", {})
+        collections_list = response_data.get("collections_owner", [])
+        answer_text = "Список моих коллекций:"
+        if len(collections_list) == 0:
+            answer_text = "Ты пока не создал ни одной коллекции"
+        await callback.message.edit_text(
+            text=answer_text,
+            reply_markup=keyboards.my_collections_menu(collections_list),
+        )
+    else:
+        await callback.message.answer(
+            text=f"Ошибка при получении списка сохраненных коллекций: "
+            f"{response.get('message')}",
+        )

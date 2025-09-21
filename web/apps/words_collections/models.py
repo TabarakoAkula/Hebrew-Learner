@@ -11,13 +11,13 @@ class Collection(models.Model):
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name="collections",
+        related_name="collections_owner",
         verbose_name="владелец",
     )
     data = models.JSONField(default=dict, verbose_name="данные")
     users = models.ManyToManyField(
         User,
-        related_name="saved_collections",
+        related_name="collections_saved",
         blank=True,
         verbose_name="пользователи",
     )

@@ -12,6 +12,8 @@ class UserSerializer(serializers.Serializer):
     created_at = serializers.DateTimeField(read_only=True, required=False)
     updated_at = serializers.DateTimeField(read_only=True, required=False)
     moderator = serializers.BooleanField(default=False, read_only=True)
+    collections_owner = serializers.SerializerMethodField()
+    collections_saved = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         try:
@@ -30,3 +32,11 @@ class UserSerializer(serializers.Serializer):
         )
         instance.save()
         return instance
+
+    @staticmethod
+    def get_collections_owner(obj):
+        return [{"id": c.id, "name": c.name} for c in obj.collections_owner.all()]
+
+    @staticmethod
+    def get_collections_saved(obj):
+        return [{"id": c.id, "name": c.name} for c in obj.collections_saved.all()]

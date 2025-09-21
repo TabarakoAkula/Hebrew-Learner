@@ -180,9 +180,7 @@ def celery_analyze_word(data: dict, link="") -> None:
             )
     elif not word_links:
         was_found = False
-        answer_text = {
-            "text": "Не удалось ничего найти"
-        }  # TODO добавить в поиск для коллекции этот вариант
+        answer_text = {"text": "Не удалось ничего найти"}
     if word:
         if not word.multiply and data.get("collection_search") and was_found:
             answer_text["text"] = (
@@ -220,6 +218,9 @@ def celery_analyze_word(data: dict, link="") -> None:
                 ),
             )
         elif not was_found:
+            inline_markup = [DEFAULT_BUTTONS]
+            if data.get("collection_search"):
+                inline_markup = get_collection_buttons(str(word.id), False)
             return asyncio.run(
                 edit_message(
                     data["telegram_id"],
@@ -230,9 +231,7 @@ def celery_analyze_word(data: dict, link="") -> None:
                             if data.get("message_id")
                             else message.message_id
                         ),
-                        "inline_reply_markup": get_collection_buttons(
-                            str(word.id), False
-                        ),
+                        "inline_reply_markup": inline_markup,
                     },
                 ),
             )

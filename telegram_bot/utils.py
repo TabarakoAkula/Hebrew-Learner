@@ -73,7 +73,7 @@ async def simple_post_request(data: dict) -> None:
 
 
 @check_success("get_or_create_user")
-async def get_or_create_user(telegram_id: int, data: dict) -> None:
+async def get_or_create_user(telegram_id: int, data: dict) -> dict:
     response = await asyncio.to_thread(
         requests.post,
         url=DOCKER_URL + f"users/{telegram_id}",
@@ -84,7 +84,7 @@ async def get_or_create_user(telegram_id: int, data: dict) -> None:
 
 
 @check_success("send_report")
-async def send_report(data: dict) -> None:
+async def send_report(data: dict) -> dict:
     response = await asyncio.to_thread(
         requests.post,
         url=DOCKER_URL + f"users/{data['telegram_id']}/report/send",
@@ -95,7 +95,7 @@ async def send_report(data: dict) -> None:
 
 
 @check_success("answer_report")
-async def answer_report(data: dict) -> None:
+async def answer_report(data: dict) -> dict:
     response = await asyncio.to_thread(
         requests.post,
         url=DOCKER_URL + f"users/{data['telegram_id']}/report/answer",

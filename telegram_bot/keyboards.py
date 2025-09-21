@@ -12,8 +12,6 @@ def main_menu() -> InlineKeyboardMarkup:
                     text="Поиск 🔎",
                     callback_data="search_menu",
                 ),
-            ],
-            [
                 InlineKeyboardButton(
                     text="Коллекции 📚",
                     callback_data="collections_menu",
@@ -53,6 +51,10 @@ def collections_menu() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="💾 Сохраненные",
                     callback_data="collections_saved_menu",
+                ),
+                InlineKeyboardButton(
+                    text="👤 Мои",
+                    callback_data="collections_my_menu",
                 ),
             ],
             [
@@ -373,6 +375,28 @@ def create_training_options(
             InlineKeyboardButton(
                 text="🔙 Назад",
                 callback_data=f"back_to_collections_data_{collection_id}",
+            )
+        ]
+    )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def my_collections_menu(data: list) -> InlineKeyboardMarkup:
+    keyboard = []
+    for collection in data:
+        keyboard.append(
+            [
+                InlineKeyboardButton(
+                    text=f"№{collection['id']} {collection['name']}",
+                    callback_data=f"open_collection_by_id_{collection['id']}",
+                )
+            ]
+        )
+    keyboard.append(
+        [
+            InlineKeyboardButton(
+                text="🔙 Назад",
+                callback_data="collections_menu",
             )
         ]
     )
