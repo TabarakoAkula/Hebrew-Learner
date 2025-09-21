@@ -78,7 +78,7 @@ async def get_or_create_user(telegram_id: int, data: dict) -> dict:
         requests.post,
         url=DOCKER_URL + f"users/{telegram_id}",
         headers={"x-api-key": API_KEY},
-        params=data,
+        json=data,
     )
     return response.json()
 

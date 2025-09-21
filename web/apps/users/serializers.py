@@ -8,6 +8,7 @@ class UserSerializer(serializers.Serializer):
         max_length=256,
         required=False,
         allow_blank=True,
+        allow_null=True,
     )
     created_at = serializers.DateTimeField(read_only=True, required=False)
     updated_at = serializers.DateTimeField(read_only=True, required=False)
