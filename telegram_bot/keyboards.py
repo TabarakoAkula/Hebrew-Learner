@@ -109,7 +109,11 @@ def collections_search_by_id() -> InlineKeyboardMarkup:
     )
 
 
-def collections_data_menu(collection_id: str, is_owner: bool) -> InlineKeyboardMarkup:
+def collections_data_menu(
+    collection_id: str,
+    is_owner: bool,
+    saved: bool = False,
+) -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(
@@ -122,6 +126,8 @@ def collections_data_menu(collection_id: str, is_owner: bool) -> InlineKeyboardM
                 text="🧠 Тренировка",
                 callback_data=f"collections_training_{collection_id}",
             ),
+        ],
+        [
             InlineKeyboardButton(
                 text="📨 Поделиться",
                 callback_data=f"collections_share_{collection_id}",
@@ -134,6 +140,13 @@ def collections_data_menu(collection_id: str, is_owner: bool) -> InlineKeyboardM
             ),
         ],
     ]
+    if not saved:
+        keyboard[2].append(
+            InlineKeyboardButton(
+                text="💾 Сохранить",
+                callback_data=f"collections_save_{collection_id}",
+            ),
+        )
     if is_owner:
         keyboard[0].append(
             InlineKeyboardButton(
@@ -385,15 +398,22 @@ def create_training_options(
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def my_collections_menu(data: list) -> InlineKeyboardMarkup:
+def my_collections_menu(
+    data: list,
+    editable: bool = False,
+    edit_mode: bool = False,
+) -> InlineKeyboardMarkup:
     keyboard = []
     for collection in data:
+        prefix = "open_collection_by_id_"
+        if edit_mode:
+            prefix = "collections_remove_saved_collections_remove_saved_"
         keyboard.append(
             [
                 InlineKeyboardButton(
                     text=f"№{collection['id']} {collection['name']}",
-                    callback_data=f"open_collection_by_id_{collection['id']}",
-                )
+                    callback_data=f"{prefix}{collection['id']}",
+                ),
             ]
         )
     keyboard.append(
@@ -401,9 +421,16 @@ def my_collections_menu(data: list) -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text="🔙 Назад",
                 callback_data="collections_menu",
-            )
+            ),
         ]
     )
+    if editable:
+        keyboard[-1].append(
+            InlineKeyboardButton(
+                text="✏️ Изменить",
+                callback_data="collections_saved_edit",
+            )
+        )
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 

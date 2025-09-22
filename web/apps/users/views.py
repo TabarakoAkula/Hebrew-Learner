@@ -1,6 +1,7 @@
 from apps.users import tasks
 from apps.users.models import User
 from apps.users.serializers import UserSerializer
+from apps.words_collections.models import Collection
 from rest_framework.views import APIView, Response
 
 
@@ -99,4 +100,40 @@ class AnswerReportAPIView(APIView):
                 "message": answer,
             }
         )
+        return Response({"success": True})
+
+
+class SavedAddAPIView(APIView):
+    @staticmethod
+    def post(request, telegram_id: str):
+        try:
+            collection_id = request.data["collection_id"]
+            collection = Collection.objects.get(id=collection_id)
+            user = User.objects.get(telegram_id=telegram_id)
+        except KeyError:
+            return Response({"success": False, "message": "Empty collection_id provided"})
+        except Collection.DoesNotExist:
+            return Response({"success": False, "message": "Collection does not exists"})
+
+        user.collections_saved.add(collection)
+        user.save()
+
+        return Response({"success": True})
+
+
+class SavedRemoveAPIView(APIView):
+    @staticmethod
+    def post(request, telegram_id: str):
+        try:
+            collection_id = request.data["collection_id"]
+            collection = Collection.objects.get(id=collection_id)
+            user = User.objects.get(telegram_id=telegram_id)
+        except KeyError:
+            return Response({"success": False, "message": "Empty collection_id provided"})
+        except Collection.DoesNotExist:
+            return Response({"success": False, "message": "Collection does not exists"})
+
+        user.collections_saved.remove(collection)
+        user.save()
+
         return Response({"success": True})

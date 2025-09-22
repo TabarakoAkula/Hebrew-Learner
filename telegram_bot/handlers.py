@@ -236,6 +236,11 @@ async def collections_search_id_input_handler(
     state: FSMContext,
     collection_id: str = None,
 ):
+    user_response = await utils.get_or_create_user(
+        message.chat.id,
+        {"telegram_id": message.chat.id},
+    )
+    user_data = user_response.get("data", {})
     new_message = False
     response = await state.get_data()
     if not response:
@@ -247,6 +252,7 @@ async def collections_search_id_input_handler(
             }
         )
     if response.get("id", None):
+        collection_id = response["id"]
         is_owner = response.get("owner", "0") == str(message.chat.id)
         await state.update_data(response)
         name = response.get("name", "None")
@@ -260,11 +266,15 @@ async def collections_search_id_input_handler(
             f"Последнее обновление: {html.bold(updated_at.strftime('%d.%m.%Y %H:%M'))}\n"
             f"Количество слов: {html.bold(number_of_words)}"
         )
+        user_collections = user_data.get("collections_saved", [])
+        is_saved = bool(any([i["id"] == collection_id for i in user_collections]))
         if new_message and not collection_id:
             await message.answer(
                 text=text,
                 reply_markup=keyboards.collections_data_menu(
-                    response.get("id", "0"), is_owner
+                    response.get("id", "0"),
+                    is_owner,
+                    is_saved,
                 ),
             )
         else:
@@ -272,14 +282,18 @@ async def collections_search_id_input_handler(
                 await message.edit_text(
                     text=text,
                     reply_markup=keyboards.collections_data_menu(
-                        response.get("id", "0"), is_owner
+                        response.get("id", "0"),
+                        is_owner,
+                        is_saved,
                     ),
                 )
             except aiogram.exceptions.TelegramBadRequest:
                 await message.answer(
                     text=text,
                     reply_markup=keyboards.collections_data_menu(
-                        response.get("id", "0"), is_owner
+                        response.get("id", "0"),
+                        is_owner,
+                        is_saved,
                     ),
                 )
     else:
@@ -1039,12 +1053,13 @@ async def saved_collections_menu_handler(callback: CallbackQuery, state: FSMCont
     if response.get("success", False):
         response_data = response.get("data", {})
         collections_list = response_data.get("collections_saved", [])
+        is_empty = len(collections_list) == 0
         answer_text = "Список сохраненных коллекций:"
         if len(collections_list) == 0:
             answer_text = "Ты пока не сохранил ни одной коллекции"
         await callback.message.edit_text(
             text=answer_text,
-            reply_markup=keyboards.my_collections_menu(collections_list),
+            reply_markup=keyboards.my_collections_menu(collections_list, not is_empty),
         )
     else:
         await callback.message.answer(
@@ -1085,3 +1100,62 @@ async def share_collections_handler(callback: CallbackQuery, state: FSMContext):
         text=f"{html.italic(share_text)}\n\n{share_link}",
         reply_markup=keyboards.share_keyboard(share_link),
     )
+
+
+@router.callback_query(F.data.startswith("collections_save_"))
+async def collections_save_add_handler(callback: CallbackQuery, state: FSMContext):
+    collection_id = callback.data.split("_")[-1]
+    response = await utils.users_saved_add(
+        {
+            "telegram_id": callback.message.chat.id,
+            "collection_id": collection_id,
+        }
+    )
+    if response.get("success", False):
+        await callback.answer("✅ Коллекция успешно сохранена")
+    else:
+        await callback.message.answer(
+            text=f"Ошибка при сохранении коллекции {response.get('message')}",
+        )
+
+
+@router.callback_query(F.data == "collections_saved_edit")
+async def saved_collections_edit_menu_handler(callback: CallbackQuery, state: FSMContext):
+    response = await utils.get_or_create_user(
+        callback.message.chat.id,
+        {"telegram_id": callback.message.chat.id},
+    )
+    if response.get("success", False):
+        response_data = response.get("data", {})
+        collections_list = response_data.get("collections_saved", [])
+        answer_text = (
+            "Список сохраненных коллекций:\n\n"
+            "Нажми на название коллекции, чтобы убрать её из списка сохранённых"
+        )
+        await callback.message.edit_text(
+            text=answer_text,
+            reply_markup=keyboards.my_collections_menu(collections_list, False, True),
+        )
+    else:
+        await callback.message.answer(
+            text=f"Ошибка при получении списка сохраненных коллекций: "
+            f"{response.get('message')}",
+        )
+
+
+@router.callback_query(F.data.startswith("collections_remove_saved_"))
+async def collections_save_remove_handler(callback: CallbackQuery, state: FSMContext):
+    collection_id = callback.data.split("_")[-1]
+    response = await utils.users_saved_remove(
+        {
+            "telegram_id": callback.message.chat.id,
+            "collection_id": collection_id,
+        }
+    )
+    if response.get("success", False):
+        await callback.answer(f"✅ Коллекция №{collection_id} удалена из сохраненных")
+        await saved_collections_edit_menu_handler(callback, state)
+    else:
+        await callback.message.answer(
+            text=f"Ошибка при сохранении коллекции {response.get('message')}",
+        )

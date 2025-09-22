@@ -170,6 +170,28 @@ async def create_collection(data: dict) -> dict:
     return response.json()
 
 
+@check_success("users_saved_add")
+async def users_saved_add(data: dict) -> dict:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"users/{data.get('telegram_id')}/saved/add",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
+@check_success("users_saved_remove")
+async def users_saved_remove(data: dict) -> dict:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + f"users/{data.get('telegram_id')}/saved/remove",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
 async def get_word_formatting(
     data: dict, imperative: bool = False, passive: bool = False
 ) -> dict:
