@@ -132,6 +132,10 @@ def collections_data_menu(
                 text="📨 Поделиться",
                 callback_data=f"collections_share_{collection_id}",
             ),
+            InlineKeyboardButton(
+                text="⋯ Другое",
+                callback_data=f"collections_other_{collection_id}",
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -327,10 +331,8 @@ def new_created_collection_menu(collection_id: str) -> InlineKeyboardMarkup:
 def collection_training_settings_menu(
     collection_id: str,
     display_mode: bool,
-    nekudot_mode: bool,
 ) -> InlineKeyboardMarkup:
     display_mode_text = "Отображать перевод" if display_mode else "Отображать слово"
-    nekudot_mode_text = "Не отображать некудот" if nekudot_mode else "Отображать некудот"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -347,7 +349,7 @@ def collection_training_settings_menu(
             ],
             [
                 InlineKeyboardButton(
-                    text="🔄 " + nekudot_mode_text,
+                    text="🔄 Некудот",
                     callback_data="collection_training_change_nekudot_mode",
                 )
             ],
@@ -456,4 +458,23 @@ def share_keyboard(share_link: str) -> InlineKeyboardMarkup:
                 ),
             ],
         ],
+    )
+
+
+def collections_other_menu(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📋 Скопировать к себе",
+                    callback_data="not_realized_feature",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ]
     )

@@ -312,7 +312,7 @@ async def collections_data_words_handler(callback: CallbackQuery, state: FSMCont
         words_list = [
             html.bold(words_data[word]["base_form"])
             + " - "
-            + words_data[word]["translation"]
+            + words_data[word]["translation"].capitalize()
             for word in words_data.keys()
         ]
         words = "\n".join(words_list)
@@ -822,14 +822,15 @@ async def collections_training_menu_handler(
         return
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
+    display_mode_text = "Слово на иврите" if display_mode else "Перевод слова"
+    nekudot_mode_text = "Да" if nekudot_mode else "Нет"
     await callback.message.edit_text(
-        text=f"Выбери настройки:\n\nРежим отображения: "
-        f"{'Слово' if display_mode else 'Перевод'}\n"
-        f"Отображать некудот: {'Да' if nekudot_mode else 'Нет'}",
+        text=f"Выбери настройки:\n\nВ вопросе: "
+        f"{html.bold(display_mode_text)}\n"
+        f"Отображать некудот: {html.bold(nekudot_mode_text)}",
         reply_markup=keyboards.collection_training_settings_menu(
             data.get("id", "0"),
             display_mode,
-            nekudot_mode,
         ),
     )
 
@@ -1196,3 +1197,16 @@ async def collections_rename_menu_input_handler(message: Message, state: FSMCont
             text="Ошибка при обновлении имени коллекции",
             reply_markup=keyboards.back_collections_edit_menu(collection_id),
         )
+
+
+@router.callback_query(F.data.startswith("collections_other_"))
+async def collections_other_menu_handler(callback: CallbackQuery, state: FSMContext):
+    collection_id = callback.data.split("_")[-1]
+    await callback.message.edit_reply_markup(
+        reply_markup=keyboards.collections_other_menu(collection_id),
+    )
+
+
+@router.callback_query(F.data == "not_realized_feature")
+async def not_realized_feature_handler(callback: CallbackQuery, state: FSMContext):
+    await callback.answer("Эта функция еще не добавлена :)")
