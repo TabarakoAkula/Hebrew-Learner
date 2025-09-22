@@ -478,3 +478,22 @@ def collections_other_menu(collection_id: str) -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+
+def collections_training_finish(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🧠 Ещё раз",
+                    callback_data="collection_training_start",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ]
+    )
