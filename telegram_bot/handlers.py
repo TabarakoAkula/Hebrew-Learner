@@ -883,8 +883,8 @@ async def collections_training_start_handler(
         options = sampled + [item]
         random.shuffle(options)
 
-        options_dict = {i + 1: opt for i, opt in enumerate(options)}
-        correct_index = [k for k, v in options_dict.items() if v["word"] == correct_word]
+        options_dict = {i + 1: opt["word"] for i, opt in enumerate(options)}
+        correct_index = [k for k, v in options_dict.items() if v == correct_word]
         correct_index = correct_index[0]
         questions.append(
             {
@@ -929,7 +929,11 @@ async def collections_training_question_handler(
     question_now = questions[question_now_number]
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
-    correct_word_data = question_now["options"].get(str(question_now["correct_answer"]))
+    collection_words = data.get("words", {})
+    correct_word_data_word = question_now["options"].get(
+        str(question_now["correct_answer"])
+    )
+    correct_word_data = collection_words.get(correct_word_data_word)
     word_to_display = correct_word_data.get("translation")
     if display_mode:
         if nekudot_mode:
@@ -958,6 +962,7 @@ async def collections_training_question_handler(
             display_mode,
             nekudot_mode,
             data.get("id", "0"),
+            collection_words,
         ),
     )
     return None
@@ -972,6 +977,7 @@ async def collections_training_question_input_handler(
     state: FSMContext,
 ):
     data = await state.get_data()
+    collection_words = data.get("words", {})
     questions = data.get("training_questions", [])
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
@@ -979,8 +985,10 @@ async def collections_training_question_input_handler(
     question_now = questions[question_now_number]
     correct_answer_number = str(question_now["correct_answer"])
     user_answer_number = callback.data.split("_")[-1]
-    user_answer_data = question_now["options"][user_answer_number]
-    correct_answer_data = question_now["options"][correct_answer_number]
+    user_answer_data_word = question_now["options"][user_answer_number]
+    user_answer_data = collection_words.get(user_answer_data_word)
+    correct_answer_data_word = question_now["options"][correct_answer_number]
+    correct_answer_data = collection_words.get(correct_answer_data_word)
     question_text = data.get("training_question_text")
     correct_answers = data.get("training_correct_answers")
     not_correct_answers = data.get("training_not_correct_answers")
@@ -1032,6 +1040,7 @@ async def collections_training_question_input_handler(
             display_mode,
             nekudot_mode,
             data.get("id", "0"),
+            collection_words,
             True,
             user_answer_number,
         ),

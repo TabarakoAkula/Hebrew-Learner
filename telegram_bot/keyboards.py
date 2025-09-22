@@ -368,19 +368,21 @@ def create_training_options(
     display_mode: bool,
     nekudot_mode: bool,
     collection_id: str,
+    collection_words: dict,
     answers: bool = False,
     user_answer_number: str = 0,
 ) -> InlineKeyboardMarkup:
     keyboard = []
     options = question_now["options"]
     for option in options.keys():
+        option_data = collection_words.get(options[option])
         if display_mode:
-            option_text = options[option]["translation"].capitalize()
+            option_text = option_data["translation"].capitalize()
         else:
             if nekudot_mode:
-                option_text = options[option]["base_form"].capitalize()
+                option_text = option_data["base_form"].capitalize()
             else:
-                option_text = options[option]["word"].capitalize()
+                option_text = option_data["word"].capitalize()
 
         if answers:
             if str(question_now["correct_answer"]) == option:
