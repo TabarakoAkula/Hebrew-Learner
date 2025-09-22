@@ -48,4 +48,5 @@ class RenameCollectionStatesGroup(StatesGroup):
 
 class TrainingStatesGroup(StatesGroup):
     input = State()
+    choose = State()
     answers = State()

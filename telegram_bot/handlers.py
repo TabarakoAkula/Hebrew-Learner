@@ -817,15 +817,20 @@ async def collections_training_menu_handler(
     if first_launch:
         await state.update_data({"training_mode_translation": False})
         await state.update_data({"training_mode_nekudot": True})
+        await state.update_data({"training_mode_training": 1})
     data = await state.get_data()
     if callback.data.split("_")[-1] != str(data.get("id")) and first_launch:
         return
+    training_mode = data.get("training_mode_training")
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
+    training_mode_text = "Выбор опции" if training_mode == 1 else "Ввод вручную"
     display_mode_text = "Слово на иврите" if display_mode else "Перевод слова"
     nekudot_mode_text = "Да" if nekudot_mode else "Нет"
     await callback.message.edit_text(
-        text=f"Выбери настройки:\n\nВ вопросе: "
+        text=f"Выбери настройки:\n\n"
+        f"Режим: {html.bold(training_mode_text)}\n"
+        f"В вопросе: "
         f"{html.bold(display_mode_text)}\n"
         f"Отображать некудот: {html.bold(nekudot_mode_text)}",
         reply_markup=keyboards.collection_training_settings_menu(
@@ -858,6 +863,26 @@ async def collections_training_change_nekudot_mode_handler(
     await state.update_data(
         {
             "training_mode_nekudot": not data.get("training_mode_nekudot"),
+        }
+    )
+    return await collections_training_menu_handler(callback, state, first_launch=False)
+
+
+@router.callback_query(F.data == "collection_training_change_training_mode")
+async def collections_training_change_training_mode_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    training_mode_now = data.get("training_mode_training")
+    if training_mode_now == 1:
+        new_training_mode = 2
+    else:
+        new_training_mode = 1
+    await state.update_data(
+        {
+            "training_mode_training": new_training_mode,
+            "training_mode_translation": False,
         }
     )
     return await collections_training_menu_handler(callback, state, first_launch=False)
@@ -909,10 +934,12 @@ async def collections_training_question_handler(
     state: FSMContext,
 ):
     data = await state.get_data()
+    collection_id = data.get("id", "0")
     questions = data.get("training_questions", [])
     question_now_number = data.get("training_question_number")
     correct_answers = data.get("training_correct_answers")
     not_correct_answers = data.get("training_not_correct_answers")
+
     if len(questions) == 0 or len(questions) == question_now_number:
         words_to_repeat = "\n".join([f"• {i}" for i in not_correct_answers])
         words_to_repeat = "Слова для повторения:\n" + words_to_repeat
@@ -926,7 +953,9 @@ async def collections_training_question_handler(
             f"{words_to_repeat}",
             reply_markup=keyboards.collections_training_finish(data.get("id")),
         )
+
     question_now = questions[question_now_number]
+    training_mode = data.get("training_mode_training")
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
     collection_words = data.get("words", {})
@@ -944,9 +973,12 @@ async def collections_training_question_handler(
     correct_percentage = 1
     if question_now_number != 0:
         correct_percentage = correct_answers / question_now_number
-    question_text = (
-        f"Выбери правильный перевод: {html.bold(word_to_display.capitalize())}"
-    )
+    if training_mode == 1:
+        question_text = (
+            f"Выбери правильный перевод: {html.bold(word_to_display.capitalize())}"
+        )
+    else:
+        question_text = f"Введи перевод слова: {html.bold(word_to_display.capitalize())}"
     await state.update_data({"training_question_text": question_text})
 
     stats_string = (
@@ -954,25 +986,32 @@ async def collections_training_question_handler(
         f"{round(correct_percentage, 1) * 100}%\n\n"
     )
     question_text = html.italic(stats_string) + question_text
-    await state.set_state(states.TrainingStatesGroup.input)
-    await callback.message.edit_text(
-        text=question_text,
-        reply_markup=keyboards.create_training_options(
-            question_now,
-            display_mode,
-            nekudot_mode,
-            data.get("id", "0"),
-            collection_words,
-        ),
-    )
+    if training_mode == 1:
+        await state.set_state(states.TrainingStatesGroup.choose)
+        await callback.message.edit_text(
+            text=question_text,
+            reply_markup=keyboards.create_training_options(
+                question_now,
+                display_mode,
+                nekudot_mode,
+                data.get("id", "0"),
+                collection_words,
+            ),
+        )
+    else:
+        await state.set_state(states.TrainingStatesGroup.input)
+        await callback.message.edit_text(
+            text=question_text,
+            reply_markup=keyboards.collection_data(collection_id),
+        )
     return None
 
 
 @router.callback_query(
     F.data.startswith("training_choose_"),
-    states.TrainingStatesGroup.input,
+    states.TrainingStatesGroup.choose,
 )
-async def collections_training_question_input_handler(
+async def collections_training_question_choose_handler(
     callback: CallbackQuery,
     state: FSMContext,
 ):
@@ -1230,3 +1269,67 @@ async def collections_other_menu_handler(callback: CallbackQuery, state: FSMCont
 @router.callback_query(F.data == "not_realized_feature")
 async def not_realized_feature_handler(callback: CallbackQuery, state: FSMContext):
     await callback.answer("Эта функция еще не добавлена :)")
+
+
+@router.message(states.TrainingStatesGroup.input)
+async def collections_training_question_input_handler(
+    message: Message,
+    state: FSMContext,
+):
+    user_answer = message.text
+
+    data = await state.get_data()
+    collection_words = data.get("words", {})
+    collection_id = data.get("id", "0")
+    questions = data.get("training_questions", [])
+    question_now_number = data.get("training_question_number")
+    question_now = questions[question_now_number]
+    correct_answer_number = str(question_now["correct_answer"])
+    correct_answer_data_word = question_now["options"][correct_answer_number]
+
+    clear_correct_answer = utils.remove_nekudots(correct_answer_data_word)
+    is_correct = clear_correct_answer == utils.remove_nekudots(user_answer)
+
+    correct_answer_data = collection_words.get(correct_answer_data_word)
+    question_text = data.get("training_question_text")
+    correct_answers = data.get("training_correct_answers")
+    not_correct_answers = data.get("training_not_correct_answers")
+
+    question_now_number += 1
+    if is_correct:
+        correct_answers += 1
+
+    correct_percentage = 1
+    if question_now_number != 0:
+        correct_percentage = correct_answers / question_now_number
+
+    stats_string = (
+        f"{question_now_number}/{len(questions)} "
+        f"{round(correct_percentage, 1) * 100}%\n\n"
+    )
+    result_text = html.italic(stats_string) + question_text
+
+    if not is_correct:
+        result_text += html.bold("\n\n️❌ Не верно")
+        correct_word = correct_answer_data["word"]
+        result_text += (
+            f"\n\nТы ответил: {html.bold(user_answer)}\n"
+            f"Правильный ответ: {html.bold(correct_word)}"
+        )
+
+        correct_translation = correct_answer_data["translation"].capitalize()
+        correct_text = f"{html.bold(correct_word)} - {correct_translation}"
+        not_correct_answers.append(correct_text)
+        await state.update_data({"training_not_correct_answers": not_correct_answers})
+    else:
+        result_text += html.bold("\n\n️✅ Верно") + f" - {user_answer}"
+        await state.update_data({"training_correct_answers": correct_answers})
+
+    result_text += html.italic(
+        "\n\nНажми на кнопку ниже для перехода к следующему вопросу"
+    )
+    await state.set_state(states.TrainingStatesGroup.answers)
+    await message.answer(
+        text=result_text,
+        reply_markup=keyboards.training_next_question(collection_id),
+    )

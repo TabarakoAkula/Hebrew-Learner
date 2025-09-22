@@ -343,14 +343,18 @@ def collection_training_settings_menu(
             ],
             [
                 InlineKeyboardButton(
-                    text="🔄 " + display_mode_text,
-                    callback_data="collection_training_change_display_mode",
-                )
-            ],
-            [
+                    text="🔄 Режим",
+                    callback_data="collection_training_change_training_mode",
+                ),
                 InlineKeyboardButton(
                     text="🔄 Некудот",
                     callback_data="collection_training_change_nekudot_mode",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔄 " + display_mode_text,
+                    callback_data="collection_training_change_display_mode",
                 )
             ],
             [
@@ -489,6 +493,38 @@ def collections_training_finish(collection_id: str) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="🧠 Ещё раз",
                     callback_data="collection_training_start",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ]
+    )
+
+
+def collection_data(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ]
+    )
+
+
+def training_next_question(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="➡️",
+                    callback_data="training_choose_null",
                 ),
             ],
             [
