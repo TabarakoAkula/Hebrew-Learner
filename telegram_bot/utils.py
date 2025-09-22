@@ -192,6 +192,17 @@ async def users_saved_remove(data: dict) -> dict:
     return response.json()
 
 
+@check_success("rename_collection")
+async def rename_collection(data: dict) -> dict:
+    response = await asyncio.to_thread(
+        requests.put,
+        url=DOCKER_URL + f"collections/{data.get('collection_id')}",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
 async def get_word_formatting(
     data: dict, imperative: bool = False, passive: bool = False
 ) -> dict:

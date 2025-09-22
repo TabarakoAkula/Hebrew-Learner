@@ -202,7 +202,13 @@ def collections_edit_menu(collection_id: str, words_list: list) -> InlineKeyboar
         ],
         [
             InlineKeyboardButton(
-                text="🗑️ Удалить коллекцию",
+                text="🔤 Переименовать",
+                callback_data=f"collections_rename_{collection_id}",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🗑️ Удалить",
                 callback_data=f"collections_delete_{collection_id}",
             ),
         ],

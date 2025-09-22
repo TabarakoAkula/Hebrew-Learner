@@ -42,6 +42,10 @@ class CreateCollectionStatesGroup(StatesGroup):
     input = State()
 
 
+class RenameCollectionStatesGroup(StatesGroup):
+    input = State()
+
+
 class TrainingStatesGroup(StatesGroup):
     input = State()
     answers = State()

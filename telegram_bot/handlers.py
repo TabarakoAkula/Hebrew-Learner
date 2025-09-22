@@ -349,7 +349,7 @@ async def collections_edit_menu_handler(callback: CallbackQuery, state: FSMConte
         words_list = [
             html.bold(words_data[word]["base_form"])
             + " - "
-            + words_data[word]["translation"]
+            + words_data[word]["translation"].capitalize()
             for word in words_data.keys()
         ]
         words = "\n".join(words_list)
@@ -1158,4 +1158,41 @@ async def collections_save_remove_handler(callback: CallbackQuery, state: FSMCon
     else:
         await callback.message.answer(
             text=f"Ошибка при сохранении коллекции {response.get('message')}",
+        )
+
+
+@router.callback_query(F.data.startswith("collections_rename_"))
+async def collections_rename_menu_handler(callback: CallbackQuery, state: FSMContext):
+    collection_id = callback.data.split("_")[-1]
+    data = await state.get_data()
+    if collection_id != str(data.get("id", 0)):
+        return
+    await state.set_state(states.RenameCollectionStatesGroup.input)
+    await callback.message.edit_text(
+        text="Введи новое название для коллекции",
+        reply_markup=keyboards.back_collections_edit_menu(collection_id),
+    )
+
+
+@router.message(states.RenameCollectionStatesGroup.input)
+async def collections_rename_menu_input_handler(message: Message, state: FSMContext):
+    collection_name = message.text
+    data = await state.get_data()
+    collection_id = data.get("id")
+    response = await utils.rename_collection(
+        {
+            "collection_id": collection_id,
+            "name": collection_name,
+        }
+    )
+    if response.get("id", None):
+        await message.answer(
+            text=f"✔️ Коллекция успешно переименована в {html.bold(collection_name)}",
+            reply_markup=keyboards.back_collections_edit_menu(collection_id),
+        )
+        await state.update_data({"name": collection_name})
+    else:
+        await message.answer(
+            text="Ошибка при обновлении имени коллекции",
+            reply_markup=keyboards.back_collections_edit_menu(collection_id),
         )
