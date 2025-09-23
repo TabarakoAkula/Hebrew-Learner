@@ -900,8 +900,12 @@ async def collections_training_start_handler(
     collection_words_list = [
         collection_words_dict[word] for word in collection_words_dict.keys()
     ]
+    words_length = len(collection_words_list)
     n_options = 3
-
+    if words_length > 20:
+        n_options = 5
+    elif words_length > 10:
+        n_options = 4
     questions = []
     for item in collection_words_list:
         correct_word = item["word"]
