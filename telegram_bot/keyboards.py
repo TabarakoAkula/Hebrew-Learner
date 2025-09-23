@@ -330,41 +330,46 @@ def new_created_collection_menu(collection_id: str) -> InlineKeyboardMarkup:
 
 def collection_training_settings_menu(
     collection_id: str,
-    display_mode: bool,
+    change_options: bool,
 ) -> InlineKeyboardMarkup:
-    display_mode_text = "Отображать перевод" if display_mode else "Отображать слово"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="🚀 Начать",
-                    callback_data="collection_training_start",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔄 Режим",
-                    callback_data="collection_training_change_training_mode",
-                ),
-                InlineKeyboardButton(
-                    text="🔄 Некудот",
-                    callback_data="collection_training_change_nekudot_mode",
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔄 " + display_mode_text,
-                    callback_data="collection_training_change_display_mode",
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🔙 Назад",
-                    callback_data=f"back_to_collections_data_{collection_id}",
-                )
-            ],
-        ]
-    )
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text="🚀 Начать",
+                callback_data="collection_training_start",
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔄 Режим",
+                callback_data="collection_training_change_training_mode",
+            ),
+            InlineKeyboardButton(
+                text="🔄 Некудот",
+                callback_data="collection_training_change_nekudot_mode",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔄 Отображение",
+                callback_data="collection_training_change_display_mode",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🔙 Назад",
+                callback_data=f"back_to_collections_data_{collection_id}",
+            ),
+        ],
+    ]
+    if change_options:
+        keyboard[2].append(
+            InlineKeyboardButton(
+                text="🔄 " + "Опции",
+                callback_data="collection_training_change_options_number",
+            )
+        )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def create_training_options(

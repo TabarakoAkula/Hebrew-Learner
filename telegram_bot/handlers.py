@@ -818,6 +818,7 @@ async def collections_training_menu_handler(
         await state.update_data({"training_mode_translation": False})
         await state.update_data({"training_mode_nekudot": True})
         await state.update_data({"training_mode_training": 1})
+        await state.update_data({"training_n_options": 3})
     data = await state.get_data()
     if callback.data.split("_")[-1] != str(data.get("id")) and first_launch:
         return await callback.answer(
@@ -826,18 +827,24 @@ async def collections_training_menu_handler(
     training_mode = data.get("training_mode_training")
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
+    n_options = data.get("training_n_options")
     training_mode_text = "Выбор опции" if training_mode == 1 else "Ввод вручную"
     display_mode_text = "Слово на иврите" if display_mode else "Перевод слова"
     nekudot_mode_text = "Да" if nekudot_mode else "Нет"
-    await callback.message.edit_text(
-        text=f"Выбери настройки:\n\n"
-        f"Режим: {html.bold(training_mode_text)}\n"
-        f"В вопросе: "
-        f"{html.bold(display_mode_text)}\n"
-        f"Отображать некудот: {html.bold(nekudot_mode_text)}",
+    settings_text = (
+        f"Выбери настройки:\n\nРежим: {html.bold(training_mode_text)}\n"
+        f"В вопросе: {html.bold(display_mode_text)}\n"
+        f"Отображать некудот: {html.bold(nekudot_mode_text)}"
+    )
+    if training_mode == 1:
+        settings_text += f"\nКоличество опций: {html.bold(n_options)}"
+    else:
+        n_options = 0
+    return await callback.message.edit_text(
+        text=settings_text,
         reply_markup=keyboards.collection_training_settings_menu(
             data.get("id", "0"),
-            display_mode,
+            n_options != 0,
         ),
     )
 
@@ -890,6 +897,28 @@ async def collections_training_change_training_mode_handler(
     return await collections_training_menu_handler(callback, state, first_launch=False)
 
 
+@router.callback_query(F.data == "collection_training_change_options_number")
+async def collections_training_change_options_number_handler(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    words = data.get("words", {})
+    n_options = data.get("training_n_options", 3)
+    if n_options == 3 and len(words) > 3:
+        n_options = 4
+    elif n_options == 4 and len(words) > 4:
+        n_options = 5
+    elif n_options == 5:
+        n_options = 3
+    await state.update_data(
+        {
+            "training_n_options": n_options,
+        }
+    )
+    return await collections_training_menu_handler(callback, state, first_launch=False)
+
+
 @router.callback_query(F.data == "collection_training_start")
 async def collections_training_start_handler(
     callback: CallbackQuery,
@@ -897,15 +926,10 @@ async def collections_training_start_handler(
 ):
     data = await state.get_data()
     collection_words_dict = data.get("words", {})
+    n_options = data.get("training_n_options", 0)
     collection_words_list = [
         collection_words_dict[word] for word in collection_words_dict.keys()
     ]
-    words_length = len(collection_words_list)
-    n_options = 3
-    if words_length > 20:
-        n_options = 5
-    elif words_length > 10:
-        n_options = 4
     questions = []
     for item in collection_words_list:
         correct_word = item["word"]
