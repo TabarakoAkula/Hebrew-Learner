@@ -77,7 +77,7 @@ def collections_search_methods() -> InlineKeyboardMarkup:
                 ),
                 InlineKeyboardButton(
                     text="Поиск по названию",
-                    callback_data="collections_search_by_name",
+                    callback_data="not_realized_feature",
                 ),
             ],
             [
@@ -128,10 +128,6 @@ def collections_data_menu(
             ),
         ],
         [
-            InlineKeyboardButton(
-                text="📨 Поделиться",
-                callback_data=f"collections_share_{collection_id}",
-            ),
             InlineKeyboardButton(
                 text="⋯ Другое",
                 callback_data=f"collections_other_{collection_id}",
@@ -453,7 +449,7 @@ def my_collections_menu(
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-def share_keyboard(share_link: str) -> InlineKeyboardMarkup:
+def share_keyboard(share_link: str, collection_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -468,6 +464,12 @@ def share_keyboard(share_link: str) -> InlineKeyboardMarkup:
                     url=f"https://wa.me/?text={share_link}",
                 ),
             ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
         ],
     )
 
@@ -475,6 +477,12 @@ def share_keyboard(share_link: str) -> InlineKeyboardMarkup:
 def collections_other_menu(collection_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📨 Поделиться",
+                    callback_data=f"collections_share_{collection_id}",
+                ),
+            ],
             [
                 InlineKeyboardButton(
                     text="📋 Скопировать к себе",
@@ -539,4 +547,46 @@ def training_next_question(collection_id: str) -> InlineKeyboardMarkup:
                 ),
             ],
         ]
+    )
+
+
+def collection_add_base_form_menu(collection_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Да",
+                    callback_data="collections_apply_translation",
+                ),
+                InlineKeyboardButton(
+                    text="Нет",
+                    callback_data="collections_add_edit_base_form",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ],
+    )
+
+
+def collection_add_base_form_input(collection_id: str, word: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"Использовать {word}",
+                    callback_data="collections_apply_same_base_form",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔙 Назад",
+                    callback_data=f"back_to_collections_data_{collection_id}",
+                ),
+            ],
+        ],
     )

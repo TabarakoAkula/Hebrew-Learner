@@ -24,6 +24,7 @@ class CollectionsAddWordStatesGroup(StatesGroup):
 
 class CollectionsAddExistingTranslationWordStatesGroup(StatesGroup):
     input = State()
+    input_two = State()
 
 
 class CollectionsAddMultipleTranslationWordStatesGroup(StatesGroup):

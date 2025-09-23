@@ -571,8 +571,64 @@ async def collections_add_translation_new_word_handler(
 
 
 @router.message(states.CollectionsAddExistingTranslationWordStatesGroup.input)
-async def collections_add_translation_new_word_input_handler(
+async def collection_add_base_form_new_word_menu_handler(
     message: Message, state: FSMContext
+):
+    data = await state.get_data()
+    await state.update_data({"word_translation_to_add": message.text})
+    await state.set_state(
+        states.CollectionsAddExistingTranslationWordStatesGroup.input_two
+    )
+    base_form = "None"
+    if data.get("word_id_to_add"):
+        response = await utils.get_or_add_word(
+            {
+                "telegram_id": message.chat.id,
+                "word": utils.remove_nekudots(data.get("word_to_add")),
+            }
+        )
+        base_form = response["data"]["data"].get("base_form", "")
+    await message.answer(
+        text=f"Слово: {html.bold(data.get('word_to_add'))}\n"
+        f"Перевод: {html.bold(message.text.capitalize())}\n"
+        f"Форма с огласовками: {html.bold(base_form)}\n\n"
+        f"Форма с огласовками записана правильно?",
+        reply_markup=keyboards.collection_add_base_form_menu(data.get("id", "0")),
+    )
+
+
+@router.callback_query(F.data == "collections_add_edit_base_form")
+async def collections_edit_base_form_handler(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    collection_id = data.get("id", "0")
+    word = data.get("word_to_add")
+    await callback.message.edit_text(
+        text=f"Введи корректную форму с огласовками для слова {html.bold(word)}",
+        reply_markup=keyboards.collection_add_base_form_input(collection_id, word),
+    )
+
+
+@router.callback_query(F.data == "collections_apply_same_base_form")
+async def collections_edit_base_form_handler_same_with_word(
+    callback: CallbackQuery,
+    state: FSMContext,
+):
+    data = await state.get_data()
+    await state.update_data({"base_form": data.get("word_to_add")})
+    await collections_add_translation_new_word_input_handler(callback, state, False)
+
+
+@router.message(states.CollectionsAddExistingTranslationWordStatesGroup.input_two)
+async def collections_edit_base_form_input_handler(message: Message, state: FSMContext):
+    await state.update_data({"base_form": message.text})
+    await collections_add_translation_new_word_input_handler(message, state, True)
+
+
+@router.callback_query(F.data == "collections_apply_translation")
+async def collections_add_translation_new_word_input_handler(
+    callback: CallbackQuery | Message,
+    state: FSMContext,
+    use_message: bool = False,
 ):
     data = await state.get_data()
     collection_id = data.get("id")
@@ -581,14 +637,18 @@ async def collections_add_translation_new_word_input_handler(
         "id": data.get("word_id_to_add"),
         "existing": existing,
         "collection_id": collection_id,
-        "translation": message.text,
+        "translation": data.get("word_translation_to_add"),
     }
+    base_form = data.get("base_form", None)
+    if base_form:
+        request_data["base_form"] = base_form
     if not existing:
         request_data["base_form"] = data.get("word_to_add")
         request_data["word"] = data.get("word_to_add")
 
     response = await utils.collections_add_word(request_data)
 
+    await state.set_state(states.CollectionsAddWordStatesGroup.input)
     if response.get("success", False):
         words_in_collection = data.get("words", {})
         word_data = response.get("data", {})
@@ -596,17 +656,31 @@ async def collections_add_translation_new_word_input_handler(
         await state.update_data(
             {"words": words_in_collection, "word_to_add": None, "word_id_to_add": None}
         )
-        await message.answer(
-            text=f"{response.get('message')}\n\n"
-            f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
-            reply_markup=keyboards.back_collections_edit_menu(collection_id),
-        )
+        if use_message:
+            await callback.answer(
+                text=f"{response.get('message')}\n\n"
+                f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
+                reply_markup=keyboards.back_collections_edit_menu(collection_id),
+            )
+        else:
+            await callback.message.edit_text(
+                text=f"{response.get('message')}\n\n"
+                f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
+                reply_markup=keyboards.back_collections_edit_menu(collection_id),
+            )
     else:
-        await message.answer(
-            text=f"Ошибка при добавлении слова: {response.get('message')}\n\n"
-            f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
-            reply_markup=keyboards.back_collections_edit_menu(collection_id),
-        )
+        if use_message:
+            await callback.answer(
+                text=f"Ошибка при добавлении слова: {response.get('message')}\n\n"
+                f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
+                reply_markup=keyboards.back_collections_edit_menu(collection_id),
+            )
+        else:
+            await callback.message.edit_text(
+                text=f"Ошибка при добавлении слова: {response.get('message')}\n\n"
+                f"Ты можешь вернуться в меню или ввести следующее слово для добавления",
+                reply_markup=keyboards.back_collections_edit_menu(collection_id),
+            )
 
 
 @router.callback_query(F.data.startswith("coll_add_multiple_"))
@@ -911,6 +985,8 @@ async def collections_training_change_options_number_handler(
         n_options = 5
     elif n_options == 5:
         n_options = 3
+    elif n_options == 4 and len(words) <= 4:
+        n_options = 3
     await state.update_data(
         {
             "training_n_options": n_options,
@@ -1183,11 +1259,18 @@ async def my_collections_menu_handler(callback: CallbackQuery, state: FSMContext
 @router.callback_query(F.data.startswith("collections_share_"))
 async def share_collections_handler(callback: CallbackQuery, state: FSMContext):
     collection_id = callback.data.split("_")[-1]
+    data = await state.get_data()
+    if collection_id != str(data.get("id")):
+        return await callback.answer(
+            text="Открой коллекцию в новом сообщении, чтобы поделиться ею",
+        )
     share_link = f"t.me/{BOT_USERNAME}?start=collection_{collection_id}"
-    share_text = "Поделись этой ссылкой, чтобы открыть коллекцию на другом устройстве:"
-    await callback.message.answer(
-        text=f"{html.italic(share_text)}\n\n{share_link}",
-        reply_markup=keyboards.share_keyboard(share_link),
+    part_one = html.italic("Поделись этой ссылкой, чтобы открыть коллекцию ")
+    part_two = html.italic(" на другом устройстве:")
+    share_text = part_one + data.get("name") + part_two
+    await callback.message.edit_text(
+        text=f"{share_text}\n\n{share_link}",
+        reply_markup=keyboards.share_keyboard(share_link, collection_id),
     )
 
 
