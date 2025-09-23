@@ -947,7 +947,7 @@ async def collections_training_question_handler(
         words_to_repeat = "Слова для повторения:\n" + words_to_repeat
         if len(not_correct_answers) == 0:
             words_to_repeat = ""
-        answers_percentage = round(correct_answers / question_now_number, 1) * 100
+        answers_percentage = round(correct_answers / question_now_number * 100, 1)
         answers_percentage_text = f"{answers_percentage}%"
         return await callback.message.edit_text(
             text=f"Тренировка завершена\n\n"
@@ -972,9 +972,9 @@ async def collections_training_question_handler(
         else:
             word_to_display = correct_word_data.get("word")
 
-    correct_percentage = 1
+    correct_percentage = 100
     if question_now_number != 0:
-        correct_percentage = correct_answers / question_now_number
+        correct_percentage = correct_answers / question_now_number * 100
     if training_mode == 1:
         question_text = (
             f"Выбери правильный перевод: {html.bold(word_to_display.capitalize())}"
@@ -985,7 +985,7 @@ async def collections_training_question_handler(
 
     stats_string = (
         f"{question_now_number + 1}/{len(questions)} "
-        f"{round(correct_percentage, 1) * 100}%\n\n"
+        f"{round(correct_percentage, 1)}%\n\n"
     )
     question_text = html.italic(stats_string) + question_text
     if training_mode == 1:
@@ -1040,11 +1040,10 @@ async def collections_training_question_choose_handler(
 
     correct_percentage = 1
     if question_now_number != 0:
-        correct_percentage = correct_answers / question_now_number
+        correct_percentage = correct_answers / question_now_number * 100
 
     stats_string = (
-        f"{question_now_number}/{len(questions)} "
-        f"{round(correct_percentage, 1) * 100}%\n\n"
+        f"{question_now_number}/{len(questions)} {round(correct_percentage, 1)}%\n\n"
     )
     result_text = html.italic(stats_string) + question_text
 
@@ -1305,11 +1304,10 @@ async def collections_training_question_input_handler(
 
     correct_percentage = 1
     if question_now_number != 0:
-        correct_percentage = correct_answers / question_now_number
+        correct_percentage = correct_answers / question_now_number * 100
 
     stats_string = (
-        f"{question_now_number}/{len(questions)} "
-        f"{round(correct_percentage, 1) * 100}%\n\n"
+        f"{question_now_number}/{len(questions)} {round(correct_percentage, 1)}%\n\n"
     )
     result_text = html.italic(stats_string) + question_text
 
