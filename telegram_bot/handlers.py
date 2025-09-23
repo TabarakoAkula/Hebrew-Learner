@@ -820,7 +820,9 @@ async def collections_training_menu_handler(
         await state.update_data({"training_mode_training": 1})
     data = await state.get_data()
     if callback.data.split("_")[-1] != str(data.get("id")) and first_launch:
-        return
+        return await callback.answer(
+            text="Запрещено запускать тренировку из старого сообщения",
+        )
     training_mode = data.get("training_mode_training")
     display_mode = data.get("training_mode_translation")
     nekudot_mode = data.get("training_mode_nekudot")
@@ -1226,9 +1228,11 @@ async def collections_rename_menu_handler(callback: CallbackQuery, state: FSMCon
     collection_id = callback.data.split("_")[-1]
     data = await state.get_data()
     if collection_id != str(data.get("id", 0)):
-        return
+        return await callback.answer(
+            text="Запрещено редактировать коллекцию из старого сообщения",
+        )
     await state.set_state(states.RenameCollectionStatesGroup.input)
-    await callback.message.edit_text(
+    return await callback.message.edit_text(
         text="Введи новое название для коллекции",
         reply_markup=keyboards.back_collections_edit_menu(collection_id),
     )
