@@ -16,9 +16,8 @@ A Telegram bot that makes learning Hebrew easier and faster
 - View word declensions
 - Save needed words in a collection
 - Practice vocabulary in a quiz format
-- Look at how the word is used in sentences
+- Look at how the word is used in sentences (upcoming...)
 
 Parsing data from:
 - [Pealim](https://www.pealim.com/)
-- [IRIS dictionary](https://slovar.co.il/) - upcoming
-- [Reverso context](https://context.reverso.net/) - upcoming
+
