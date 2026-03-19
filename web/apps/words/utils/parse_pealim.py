@@ -65,7 +65,7 @@ def get_word_page(search_word: str) -> list | None:
     for result in results:
         word = result.find("div", "verb-search-lemma")
         word_data = {
-            "label": word.text,
+            "label": word.text.replace("🔊", ""),
             "word": get_clear_text(word.text),
             "translation": result.find("div", "verb-search-meaning").text,
             "type": result.find("div", "verb-search-binyan")
@@ -264,4 +264,5 @@ def get_word(link: str) -> dict:
         )
 
     output["translation"] = soup.find("div", class_="lead").text.strip().capitalize()
+    print("output", output)
     return output
