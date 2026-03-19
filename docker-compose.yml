@@ -3,7 +3,7 @@ services:
     image: nginx:1.27.5
     container_name: nginx
     ports:
-      - "8181:80"
+      - "80:80"
     volumes:
       - "./nginx.conf:/etc/nginx/nginx.conf"
     restart: unless-stopped
@@ -39,8 +39,6 @@ services:
      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose:
-      - "5432"
     networks:
       - django-network
 
@@ -94,7 +92,7 @@ services:
     container_name: telegram_bot
     command: bash -c "python3 telegram_bot"
     expose:
-      - "8080"
+      - "8000"
     restart: unless-stopped
     env_file:
       - .env
