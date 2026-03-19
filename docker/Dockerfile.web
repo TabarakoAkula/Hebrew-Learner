@@ -23,8 +23,10 @@ RUN apt-get update && apt-get upgrade -y \
 
 WORKDIR /code
 
-COPY ../poetry.lock ../.env ../pyproject.toml /code/
+COPY ../poetry.lock ../pyproject.toml /code/
 
 RUN poetry install --only main,web --no-interaction --no-ansi
+
+COPY ../.env /code/
 
 COPY ../web/ /code/web/
