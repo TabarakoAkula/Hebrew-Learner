@@ -699,7 +699,10 @@ async def collections_add_multiple_translation_existing_word_handler(
     if utils.remove_nekudots(data.get("word_to_add")) != utils.remove_nekudots(
         word_data.get("base_form")
     ):
-        return
+        await callback.message.answer(
+            text="Уууупс, ты поймал ошибку, напиши @michaelkushnr и я это исправлю "
+        )
+        raise RuntimeError
     response = await utils.collections_add_word(
         {
             "word": data.get("word_to_add"),
