@@ -1,6 +1,6 @@
 from apps.words.models import Word
 from apps.words.serializers import WordSerializer
-from apps.words.tasks import manager_analyze_word
+from apps.words.tasks import manager_ai_chat, manager_analyze_word
 from rest_framework.views import APIView, Response
 
 
@@ -70,5 +70,29 @@ class GetWordByLinkView(APIView):
                 "passive": passive,
                 "collection_search": collection_search,
             },
+        )
+        return Response({"success": True, "data": {}})
+
+
+class AiChatView(APIView):
+    @staticmethod
+    def post(request):
+        try:
+            telegram_id = request.data["telegram_id"]
+            message_id = request.data["message_id"]
+            prompt = request.data["prompt"]
+        except KeyError:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Bad request: not all parameters were provided",
+                }
+            )
+        manager_ai_chat(
+            {
+                "telegram_id": telegram_id,
+                "message_id": message_id,
+                "prompt": prompt,
+            }
         )
         return Response({"success": True, "data": {}})

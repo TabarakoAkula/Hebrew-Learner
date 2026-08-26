@@ -24,6 +24,7 @@ django-unfold = "^0.55.3"
 gunicorn = "^23.0.0"
 cloudscraper = "^1.2.71"
 beautifulsoup4 = "^4.13.5"
+openai = "^1.68.0"
 
 [tool.poetry.group.bot.dependencies]
 requests = "^2.32.3"

@@ -127,6 +127,17 @@ async def get_by_link(data: dict):
     return response.json()
 
 
+@check_success("ai_chat")
+async def ai_chat(data: dict) -> dict:
+    response = await asyncio.to_thread(
+        requests.post,
+        url=DOCKER_URL + "storage/ai/chat",
+        headers={"x-api-key": API_KEY},
+        json=data,
+    )
+    return response.json()
+
+
 @check_success("collections_search_by_id")
 async def collections_search_by_id(data: dict):
     response = await asyncio.to_thread(

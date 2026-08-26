@@ -14,6 +14,9 @@ API_KEY = str(os.getenv("API_KEY"))
 BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
 LOGS_GROUP_ID = str(os.getenv("LOGS_GROUP_ID"))
 
+OPENAI_API_KEY = str(os.getenv("OPENAI_API_KEY", ""))
+OPENAI_MODEL = str(os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+
 USE_POSTGRES = str(os.getenv("USE_POSTGRES")).lower() == "true"
 USE_REDIS = str(os.getenv("USE_REDIS")).lower() == "true"
 USE_CELERY = str(os.getenv("USE_CELERY")).lower() == "true"

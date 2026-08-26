@@ -2,7 +2,7 @@ import asyncio
 
 from apps.words.models import Word
 from apps.words.notifier import edit_message, send_message
-from apps.words.utils import parse_pealim, utils
+from apps.words.utils import openai_client, parse_pealim, utils
 from celery import shared_task
 from django.conf import settings
 
@@ -258,3 +258,32 @@ def manager_send_message(data: dict, use_celery=True):
 @shared_task
 def celery_send_message(data: dict):
     return asyncio.run(send_message(data["telegram_id"], data["data"]))
+
+
+def manager_ai_chat(data: dict) -> None:
+    if USE_CELERY:
+        return celery_ai_chat.delay(data)
+    return celery_ai_chat(data)
+
+
+@shared_task()
+def celery_ai_chat(data: dict) -> None:
+    try:
+        answer_text = openai_client.chat(data["prompt"])
+    except Exception as error:
+        answer_text = f"Не удалось получить ответ: {error}"
+
+    if len(answer_text) > 4096:
+        answer_text = answer_text[:4093] + "..."
+
+    return asyncio.run(
+        edit_message(
+            data["telegram_id"],
+            {
+                "message": answer_text,
+                "message_id": data["message_id"],
+                "inline_reply_markup": [DEFAULT_BUTTONS],
+                "parse_mode": None,
+            },
+        ),
+    )
