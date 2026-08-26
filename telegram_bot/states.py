@@ -51,3 +51,7 @@ class TrainingStatesGroup(StatesGroup):
     input = State()
     choose = State()
     answers = State()
+
+
+class AiStatesGroup(StatesGroup):
+    input = State()

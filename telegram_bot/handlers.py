@@ -18,6 +18,7 @@ dotenv.load_dotenv()
 router = Router()
 
 SEARCH_FILTER = StateFilter(*states.SearchStatesGroup.__all_states__)
+AI_FILTER = StateFilter(states.AiStatesGroup.input)
 BOT_USERNAME = os.getenv("BOT_USERNAME", "")
 
 
@@ -58,6 +59,31 @@ async def search_menu_hanlder(callback: CallbackQuery, state: FSMContext):
         "Введи слово для поиска:",
         reply_markup=keyboards.return_to_menu(),
     )
+
+
+@router.callback_query(F.data == "ai_menu")
+async def ai_menu_handler(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await state.set_state(states.AiStatesGroup.input)
+    await callback.message.edit_text(
+        "Введите запрос",
+        reply_markup=keyboards.return_to_menu(),
+    )
+
+
+@router.message(AI_FILTER)
+async def ai_query_handler(message: Message, state: FSMContext):
+    await state.clear()
+    processing_message = await message.answer("⚙️ Обработка")
+    response = await utils.ai_chat(
+        {
+            "telegram_id": message.chat.id,
+            "message_id": processing_message.message_id,
+            "prompt": message.text,
+        }
+    )
+    if not response["success"]:
+        await processing_message.edit_text(response["message"])
 
 
 @router.message(SEARCH_FILTER)

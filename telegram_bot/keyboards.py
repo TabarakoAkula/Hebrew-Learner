@@ -17,6 +17,12 @@ def main_menu() -> InlineKeyboardMarkup:
                     callback_data="collections_menu",
                 ),
             ],
+            [
+                InlineKeyboardButton(
+                    text="AI 🤖",
+                    callback_data="ai_menu",
+                ),
+            ],
         ]
     )
 

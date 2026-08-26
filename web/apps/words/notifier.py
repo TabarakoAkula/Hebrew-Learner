@@ -52,6 +52,7 @@ async def send_message(telegram_id: int, data: dict):
 
 
 async def edit_message(telegram_id: int, data: dict):
+    parse_mode = data.get("parse_mode", ParseMode.MARKDOWN_V2)
     async with AiohttpSession() as async_session:
         notify_bot = Bot(
             token=BOT_TOKEN,
@@ -59,19 +60,18 @@ async def edit_message(telegram_id: int, data: dict):
             default=DefaultBotProperties(parse_mode=ParseMode.MARKDOWN_V2),
         )
         try:
-            if data["inline_reply_markup"]:
-                message = await notify_bot.edit_message_text(
-                    chat_id=telegram_id,
-                    message_id=data["message_id"],
-                    text=data["message"],
-                    reply_markup=build_inline_keyboard(data["inline_reply_markup"]),
+            edit_kwargs = {
+                "chat_id": telegram_id,
+                "message_id": data["message_id"],
+                "text": data["message"],
+            }
+            if parse_mode is not None:
+                edit_kwargs["parse_mode"] = parse_mode
+            if data.get("inline_reply_markup"):
+                edit_kwargs["reply_markup"] = build_inline_keyboard(
+                    data["inline_reply_markup"]
                 )
-            else:
-                message = await notify_bot.edit_message_text(
-                    chat_id=telegram_id,
-                    message_id=data["message_id"],
-                    text=data["message"],
-                )
+            message = await notify_bot.edit_message_text(**edit_kwargs)
         except Exception as error:
             return await logs_snitch(f"Error edit_message for {telegram_id}: {error}")
     return message

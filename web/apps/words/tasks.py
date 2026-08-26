@@ -2,7 +2,7 @@ import asyncio
 
 from apps.words.models import Word
 from apps.words.notifier import edit_message, send_message
-from apps.words.utils import parse_pealim, utils
+from apps.words.utils import openai_client, parse_pealim, utils
 from celery import shared_task
 from django.conf import settings
 
@@ -16,6 +16,17 @@ DEFAULT_BUTTONS = [
     {
         "title": "📍",
         "callback": "report",
+    },
+]
+
+AI_BUTTONS = [
+    {
+        "title": "🔙 В меню",
+        "callback": "back_to_menu",
+    },
+    {
+        "title": "🤖 Ещё вопрос",
+        "callback": "ai_menu",
     },
 ]
 
@@ -258,3 +269,33 @@ def manager_send_message(data: dict, use_celery=True):
 @shared_task
 def celery_send_message(data: dict):
     return asyncio.run(send_message(data["telegram_id"], data["data"]))
+
+
+def manager_ai_chat(data: dict) -> None:
+    if USE_CELERY:
+        return celery_ai_chat.delay(data)
+    return celery_ai_chat(data)
+
+
+@shared_task()
+def celery_ai_chat(data: dict) -> None:
+    try:
+        ai_text = openai_client.chat(data["prompt"])
+        answer_text = utils.normalize_text(ai_text)
+    except Exception as error:
+        answer_text = f"Не удалось получить ответ: {error}"
+
+    if len(answer_text) > 4096:
+        answer_text = answer_text[:4093] + "..."
+
+    return asyncio.run(
+        edit_message(
+            data["telegram_id"],
+            {
+                "message": answer_text,
+                "message_id": data["message_id"],
+                "inline_reply_markup": [AI_BUTTONS],
+                "parse_mode": None,
+            },
+        ),
+    )
