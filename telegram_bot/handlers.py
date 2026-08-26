@@ -74,7 +74,7 @@ async def ai_menu_handler(callback: CallbackQuery, state: FSMContext):
 @router.message(AI_FILTER)
 async def ai_query_handler(message: Message, state: FSMContext):
     await state.clear()
-    processing_message = await message.answer("Обработка")
+    processing_message = await message.answer("⚙️ Обработка")
     response = await utils.ai_chat(
         {
             "telegram_id": message.chat.id,

@@ -19,6 +19,17 @@ DEFAULT_BUTTONS = [
     },
 ]
 
+AI_BUTTONS = [
+    {
+        "title": "🔙 В меню",
+        "callback": "back_to_menu",
+    },
+    {
+        "title": "🤖 Ещё вопрос",
+        "callback": "ai_menu",
+    },
+]
+
 
 def get_collection_buttons(
     id: str, existing_button: bool = True
@@ -269,7 +280,8 @@ def manager_ai_chat(data: dict) -> None:
 @shared_task()
 def celery_ai_chat(data: dict) -> None:
     try:
-        answer_text = openai_client.chat(data["prompt"])
+        ai_text = openai_client.chat(data["prompt"])
+        answer_text = utils.normalize_text(ai_text)
     except Exception as error:
         answer_text = f"Не удалось получить ответ: {error}"
 
@@ -282,7 +294,7 @@ def celery_ai_chat(data: dict) -> None:
             {
                 "message": answer_text,
                 "message_id": data["message_id"],
-                "inline_reply_markup": [DEFAULT_BUTTONS],
+                "inline_reply_markup": [AI_BUTTONS],
                 "parse_mode": None,
             },
         ),
